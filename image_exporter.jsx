@@ -9,6 +9,7 @@ var DialogManager = function () {
 
     var _window;
     var _imageCheckboxExport;
+    var _layerFilterModeList;
     var _imageEdittextDirectory;
     var _imageRadiobuttonPng;
     var _imageRadiobuttonJpg;
@@ -29,6 +30,7 @@ var DialogManager = function () {
     var _isExportImages = true;
     var _isExportHtml = true;
     var _isExportCss = true;
+    var _layerFilterMode = 0;
     var _imageFolderPath = null;
     var _htmlFolderPath = null;
     var _cssFolderPath = null;
@@ -47,30 +49,39 @@ var DialogManager = function () {
     // 初期化
     this.init = function () {
         var totalY = 0;
+        var totalX = 20;
         // ウィンドウ作成
-        _window = new Window("dialog", "画像出力", _getPosition({x:200, y:200, w:400, h:800}));
+        _window = new Window("dialog", "画像出力", _getPosition({x:200, y:200, w:800, h:600}));
         // 画像ファイル設定
         totalY = 20;
-        _imageCheckboxExport = _window.add("checkbox", _getPosition({x:20, y:totalY, w:320, h:40}), "画像ファイルを書き出す");
+        totalX = 20;
+        _imageCheckboxExport = _window.add("checkbox", _getPosition({x:totalX, y:totalY, w:320, h:40}), "画像ファイルを書き出す");
         _imageCheckboxExport.value = true;
-        imagePanel = _window.add("panel", _getPosition({x:20, y:totalY + 40, w:350, h:130}), "画像ファイル設定");
-        imagePanel.add("statictext", _getPosition({x:20, y:20, w:100, h:20}), "ディレクトリ :").justify = "right";
-        _imageEdittextDirectory = imagePanel.add("edittext", _getPosition({x:130, y:20, w:200, h:20}), "images");
-        imagePanel.add("statictext", _getPosition({x:20, y:50, w:100, h:20}), "ファイル形式 :").justify = "right";
-        _imageRadiobuttonPng = imagePanel.add("radiobutton", _getPosition({x:130, y:50, w:50, h:20}), "PNG");
+
+        var imagePanel = _window.add("panel", _getPosition({x:20, y:totalY + 20, w:350, h:180}), "画像ファイル設定");
+
+        imagePanel.add("statictext", _getPosition({x:20, y:20, w:100, h:20}), "出力レイヤー");
+        _layerFilterModeList = imagePanel.add("dropdownlist", _getPosition({x:130, y:20, w:200, h:20}), ["@付きのレイヤー","Saveレイヤー内のレイヤー"]);
+        _layerFilterModeList.selection = 0;
+
+        imagePanel.add("statictext", _getPosition({x:20, y:50, w:100, h:20}), "ディレクトリ :").justify = "right";
+        _imageEdittextDirectory = imagePanel.add("edittext", _getPosition({x:130, y:50, w:200, h:20}), "images");
+        imagePanel.add("statictext", _getPosition({x:20, y:80, w:100, h:20}), "ファイル形式 :").justify = "right";
+        _imageRadiobuttonPng = imagePanel.add("radiobutton", _getPosition({x:130, y:80, w:50, h:20}), "PNG");
         _imageRadiobuttonPng.value = true;
-        _imageRadiobuttonJpg = imagePanel.add("radiobutton", _getPosition({x:190, y:50, w:50, h:20}), "JPEG");
+        _imageRadiobuttonJpg = imagePanel.add("radiobutton", _getPosition({x:190, y:80, w:50, h:20}), "JPEG");
         _imageRadiobuttonJpg.value = false;
-        _imageRadiobuttonGif = imagePanel.add("radiobutton", _getPosition({x:250, y:50, w:50, h:20}), "GIF");
+        _imageRadiobuttonGif = imagePanel.add("radiobutton", _getPosition({x:250, y:80, w:50, h:20}), "GIF");
         _imageRadiobuttonGif.value = false;
-        imagePanel.add("statictext", _getPosition({x:20, y:80, w:100, h:20}), "JPEG画質 :").justify = "right";
-        _imageDropdownlistJpgCompress = imagePanel.add("dropdownlist", _getPosition({x:130, y:80, w:200, h:20}), ["100 （最高画質）", "90", "80 （高画質）", "70", "60 （やや高画質）", "50", "40", "30 （中画質）", "20", "10 （低画質）"]);
+        imagePanel.add("statictext", _getPosition({x:20, y:110, w:100, h:20}), "JPEG画質 :").justify = "right";
+        _imageDropdownlistJpgCompress = imagePanel.add("dropdownlist", _getPosition({x:130, y:110, w:200, h:20}), ["100 （最高画質）", "90", "80 （高画質）", "70", "60 （やや高画質）", "50", "40", "30 （中画質）", "20", "10 （低画質）"]);
         _imageDropdownlistJpgCompress.selection = 2;
         // HTMLファイル設定
-        totalY = 200;
-        _htmlCheckboxExport = _window.add("checkbox", _getPosition({x:20, y:totalY, w:350, h:40}), "HTMLファイルを書き出す");
+        totalY = 220;
+        totalX = 20;
+        _htmlCheckboxExport = _window.add("checkbox", _getPosition({x:totalX, y:totalY, w:350, h:40}), "HTMLファイルを書き出す");
         _htmlCheckboxExport.value = true;
-        htmlPanel = _window.add("panel", _getPosition({x:20, y:totalY + 40, w:350, h:160}), "HTMLファイル設定");
+        htmlPanel = _window.add("panel", _getPosition({x:totalX, y:totalY + 40, w:350, h:160}), "HTMLファイル設定");
         htmlPanel.add("statictext", _getPosition({x:20, y:20, w:100, h:20}), "ディレクトリ :").justify = "right";
         _htmlEdittextDirectory = htmlPanel.add("edittext", _getPosition({x:130, y:20, w:200, h:20}), "");
         htmlPanel.add("statictext", _getPosition({x:20, y:50, w:100, h:20}), "ファイル名 :").justify = "right";
@@ -81,10 +92,11 @@ var DialogManager = function () {
         htmlPanel.add("statictext", _getPosition({x:20, y:110, w:100, h:20}), "ページタイトル :").justify = "right";
         _htmlEdittextTitle = htmlPanel.add("edittext", _getPosition({x:130, y:110, w:200, h:20}), "無題ドキュメント");
         // CSSファイル設定
-        totalY = 410;
-        _cssCheckboxExport = _window.add("checkbox", _getPosition({x:20, y:totalY, w:350, h:40}), "CSSファイルを書き出す");
+        totalY = 220;
+        totalX = 420;
+        _cssCheckboxExport = _window.add("checkbox", _getPosition({x:totalX, y:totalY, w:350, h:40}), "CSSファイルを書き出す");
         _cssCheckboxExport.value = true;
-        _cssPanel = _window.add("panel", _getPosition({x:20, y:totalY + 40, w:350, h:130}), "CSSファイル設定");
+        _cssPanel = _window.add("panel", _getPosition({x:totalX, y:totalY + 40, w:350, h:130}), "CSSファイル設定");
         _cssPanel.add("statictext", _getPosition({x:20, y:20, w:100, h:20}), "ディレクトリ :").justify = "right";
         _cssEdittextDirectory = _cssPanel.add("edittext", _getPosition({x:130, y:20, w:200, h:20}), "css");
         _cssPanel.add("statictext", _getPosition({x:20, y:50, w:100, h:20}), "ファイル名 :").justify = "right";
@@ -93,8 +105,9 @@ var DialogManager = function () {
         _cssCheckboxLayout = _cssPanel.add("checkbox", _getPosition({x:130, y:80, w:200, h:20}), "absoluteで配置情報を書き込む");
         _cssCheckboxLayout.value = true;
         // その他オプション
-        totalY = 600;
-        _window.add("statictext", _getPosition({x:20, y:totalY, w:90, h:20}), "背景色 :").justify = "right";
+        totalY = 420;
+        totalX = 20;
+        _window.add("statictext", _getPosition({x:totalX, y:totalY, w:90, h:20}), "背景色 :").justify = "right";
         _otherEdittextColor = _window.add("edittext", _getPosition({x:120, y:totalY, w:200, h:20}), "#ffffff");
         _window.add("statictext", _getPosition({x:20, y:totalY + 30, w:90, h:20}), "パス記述方式 :").justify = "right";
         _otherRadiobuttonRelative = _window.add("radiobutton", _getPosition({x:120, y:totalY + 30, w:80, h:20}), "相対パス");
@@ -105,7 +118,7 @@ var DialogManager = function () {
         _otherDropdownlistCharaset = _window.add("dropdownlist", _getPosition({x:120, y:totalY + 60, w:200, h:20}), ["UTF-8", "Shift_JIS"]);
         _otherDropdownlistCharaset.selection = 0;
         // OKボタン
-        totalY = 720;
+        totalY = 540;
         _okBtn = _window.add("button", _getPosition({x:90, y:totalY, w:100, h:30}), "OK", { name:"ok" });
         _okBtn.onClick = function () {
             _close({flg:true});
@@ -130,6 +143,10 @@ var DialogManager = function () {
     this.getIsExportImages = function () {
         return _isExportImages;
     };
+
+    this.getLayerFilterMode = function() {
+        return _layerFilterMode;
+    }
 
     // HTMLファイルを書き出すか否か
     this.getIsExportHtml = function () {
@@ -227,6 +244,14 @@ var DialogManager = function () {
             _isExportHtml = _htmlCheckboxExport.value;
             // HTMLファイルを書き出すか否か
             _isExportCss = _cssCheckboxExport.value;
+
+            // Layerのフィルター
+            for(var i = 0; i < _layerFilterModeList.items.length; i++) {
+                if( _layerFilterModeList.selection == _layerFilterModeList.items[i]) {
+                    _layerFilterMode = i;
+                    break;
+                }
+            }
             // 画像ファイル格納場所
             _imageFolderPath = _setDirectoryText({str:_imageEdittextDirectory.text});
             // HTMLファイル格納場所
@@ -448,10 +473,11 @@ var ErrorChecker = function () {
             item:activeDocument,
             name:""
         });
-        _checkName({
+
+        /*_checkName({
             item:activeDocument,
             name:""
-        });
+        });*/
         _checkExist({
             item:activeDocument,
             name:""
@@ -486,74 +512,32 @@ var ErrorChecker = function () {
 
     // 重複チェック
     function _checkDuplicate(e) {
-        var item = e.item;
-        var name = e.name;
-        // レイヤー
-        var length = item.artLayers.length;
-        for (var i = 0; i < length; i++) {
-            var artLayer = item.artLayers[ i ];
-            if(!isExportTargetLayer(artLayer)) {
-                continue;
+
+        var layerNames = {};
+
+        layerFilter.foreachLayerOrLayerSet( function(layer) {
+            var saveName = layerFilter.getSaveLayerName(layer);
+            var name = layer.name;
+            if(layerNames[saveName] != undefined){
+                _errorMsgDuplicate += " ファイル名 :  " + saveName + " レイヤー名:" + name + " \n\n";
+            } else {
+                layerNames[saveName] = 1;
             }
-            var layerName = getLayerNameUtil({name:artLayer.name});
-            if (_layerName == layerName) {
-                _errorMsgDuplicate += "	レイヤー :  " + name + "/" + artLayer.name + "\n\n";
-            }
-            _layerName += layerName + "@";
-        }
-        // レイヤーセット
-        var length = item.layerSets.length;
-        for (var i = 0; i < length; i++) {
-            var layerSet = item.layerSets[ i ];
-            if(!isExportTargetLayer(artLayer)) {
-                continue;
-            }
-            var layerName = getLayerNameUtil({name:layerSet.name});
-            if (_layerName == layerName) {
-                _errorMsgDuplicate += "	レイヤーセット : " + name + "/" + layerSet.name + "\n\n";
-            }
-            _layerName += layerName + "@";
-            // 再帰
-            _checkDuplicate({
-                item:layerSet,
-                name:name + "/" + layerSet.name
-            });
-        }
+        });
+
     }
 
     // IDチェック
     function _checkName(e) {
         var item = e.item;
         var name = e.name;
-        // レイヤー
-        var length = item.artLayers.length;
-        for (var i = 0; i < length; i++) {
-            var artLayer = item.artLayers[ i ];
-            if(!isExportTargetLayer(artLayer)) {
-                continue;
-            }
-            var layerName = getLayerNameUtil({name:artLayer.name});
+
+        layerFilter.foreachLayerOrLayerSet(function(layer) {
+            var layerName = layerFilter.getSaveLayerName({name:layer.name});
             if (layerName.match(/[^0-9A-Za-z_.:-]+/) != null) {
-                _errorMsgName += "	レイヤー :  " + name + "/" + artLayer.name + "\n\n";
+                _errorMsgName += "	レイヤー :  " + layer.name + "\n\n";
             }
-        }
-        // レイヤーセット
-        var length = item.layerSets.length;
-        for (var i = 0; i < length; i++) {
-            var layerSet = item.layerSets[ i ];
-            if(!isExportTargetLayer(artLayer)) {
-                continue;
-            }
-            var layerName = getLayerNameUtil({name:layerSet.name});
-            if (layerName.match(/[^0-9A-Za-z_.:-]+/) != null) {
-                _errorMsgName += "	レイヤーセット : " + name + "/" + layerSet.name + "\n\n";
-            }
-            // 再帰
-            _checkName({
-                item:layerSet,
-                name:name + "/" + layerSet.name
-            });
-        }
+        });
     }
 
     // 表示要素チェック
@@ -594,12 +578,25 @@ var ErrorChecker = function () {
 
 var LayerFilter = function() {
 
+  
+
     /**
-     * loop all export ArtLayer and LayerSet
-     * listner = function( ArtLayer or LayerSet)
+     * 出力対象のArtLayerまたは、LayerSetを列挙する
      */
     this.foreachLayerOrLayerSet = function( listener ) {
-        _findLayers({ item: activeDocument}, listener);
+        if(dialogManager.getLayerFilterMode() == 0){
+            _findLayers({ item: activeDocument}, listener);
+        }else {
+            _listUpLayersInSaveLayerSet(activeDocument, listener);
+        }
+    }
+
+    this.getSaveLayerName = function(item) {
+        if(dialogManager.getLayerFilterMode() == 0){
+            return _getAfterAdMark(item);
+        }else {
+            return _getName(item);
+        }
     }
 
     function _findLayers(e, listener) {
@@ -610,7 +607,7 @@ var LayerFilter = function() {
         var length = item.artLayers.length;
         for (var i = 0; i < length; i++) {
             var artLayer = item.artLayers[ i ];
-            if(artLayer.visible && isExportTargetLayer(artLayer)){
+            if(artLayer.visible && _isExportTargetLayer(artLayer)){
                 listener(artLayer);
             }
         }
@@ -619,7 +616,7 @@ var LayerFilter = function() {
         for (var i = 0; i < length; i++) {
             var layerSet = item.layerSets[ i ];
             if(layerSet.visible) {
-                if(isExportTargetLayer(layerSet)){
+                if(_isExportTargetLayer(layerSet)){
                     listener(layerSet);
                 }else {
                     // 再帰
@@ -631,6 +628,48 @@ var LayerFilter = function() {
         }
     }
 
+    function _isExportTargetLayer(e) {
+        return e ? e.name.indexOf("@") >= 0 : false;
+    }
+
+    /**
+      Saveと名前の付けられたLayerSet直下のArtLayerとLayerSetを出力する
+     */
+    function _listUpLayersInSaveLayerSet(activeDocument, listener) {
+
+        var saveDir = activeDocument.layerSets.getByName("Save");
+
+        var length = saveDir.artLayers.length;
+        for(var i = 0; i < length; i++) {
+            var artLayer = saveDir.artLayers[i];
+            if(artLayer.visible){
+                listener(artLayer);
+            }
+        }
+
+        var length = saveDir.layerSets.length;
+        for(var i = 0; i < length; i++) {
+            var layerSet = saveDir.layerSets[i];
+            if(layerSet.visible){
+                listener(layerSet);
+            }
+        }
+    }
+
+
+    //
+    // ----- レイヤー名の@マークから後ろを取得
+    //
+    function _getAfterAdMark(e) { 
+        var str = (e) ? e.name : "";
+        var filename = String(str).substring(str.indexOf("@") + 1);
+        return filename;
+    }
+
+    function _getName(e) {
+        return (e) ? e.name : "";
+    }
+
 }
 
 
@@ -640,7 +679,7 @@ var LayerFilter = function() {
 var ImageExporter = function () {
 
 
-    var hidedLayers = [];
+    var hiddenLayers = [];
     // 初期化
     this.init = function () {
     };
@@ -653,7 +692,7 @@ var ImageExporter = function () {
         var targetLayers = [];
         layerFilter.foreachLayerOrLayerSet(function(layer) {
             targetLayers.push(layer);
-            targetLayers.visible = false;
+            layer.visible = false;
         });
 
         _hideLayers({
@@ -680,7 +719,7 @@ var ImageExporter = function () {
             var artLayer = item.artLayers[ i ];
             if(artLayer.visible){
                 artLayer.visible = false;
-                hidedLayers.push(artLayer);
+                hiddenLayers.push(artLayer);
             }
         }
         // レイヤーセット
@@ -688,7 +727,7 @@ var ImageExporter = function () {
         for (var i = 0; i < length; i++) {
             var layerSet = item.layerSets[ i ];
             // 再帰
-            if( item.visible) {
+            if( layerSet.visible) {
                 _hideLayers({
                     item:layerSet
                 });
@@ -698,10 +737,11 @@ var ImageExporter = function () {
 
     // レイヤー非表示化を戻す
     function _revertHideLayers() {
-        for( var i = 0; i < hidedLayers.length; i++) {
-            var layer = hidedLayers[i];
+        for( var i = 0; i < hiddenLayers.length; i++) {
+            var layer = hiddenLayers[i];
             layer.visible = true;
         }
+        hiddenLayers = [];
     }
 
 
@@ -757,7 +797,7 @@ var ImageExporter = function () {
                 var x2 = arr[2];
                 var y2 = arr[3];
                 // 新規保存
-                var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + "_" + getLayerNameUtil({name:artLayer.name}) + ".png";
+                var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + "_" + layerFilter.getSaveLayerName({name:artLayer.name}) + ".png";
                 var fileObj = new File(imageFilePath);
                 var optionObj = new PNGSaveOptions();
                 optionObj.interlaced = false;
@@ -775,7 +815,7 @@ var ImageExporter = function () {
                 executeAction( idCrop, desc12, DialogModes.NO );
             } else {
                 // 新規保存
-                var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + "_" + getLayerNameUtil({name:artLayer.name}) + ".png";
+                var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + "_" + layerFilter.getSaveLayerName({name:artLayer.name}) + ".png";
                 var fileObj = new File(imageFilePath);
                 var optionObj = new PNGSaveOptions();
                 optionObj.interlaced = false;
@@ -822,12 +862,12 @@ var ImageExporter = function () {
                     optionObj.ditherAmount = 100; // ディザーの割合
                     break;
             }
-            var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + getLayerNameUtil({name:artLayer.name}) + getFileInfoFromFileNameUtil({name:artLayer.name}).ext;
+            var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + layerFilter.getSaveLayerName({name:artLayer.name}) + getFileInfoFromFileNameUtil({name:artLayer.name}).ext;
             var fileObj = new File(imageFilePath);
             activeDocument.exportDocument(fileObj, ExportType.SAVEFORWEB, optionObj);
             activeDocument.close(SaveOptions.DONOTSAVECHANGES);
             // 不要ファイルを削除
-            var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + "_" + getLayerNameUtil({name:artLayer.name}) + ".png";
+            var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + "_" + layerFilter.getSaveLayerName({name:artLayer.name}) + ".png";
             var fileObj = new File(imageFilePath);
             fileObj.remove();
             // 非表示
@@ -877,7 +917,7 @@ var InfoManager = function () {
             var layer = item.layers[ i ];
             var layoutInfoObj = null;
             var totalInfoObj = null;
-            var layerName = getLayerNameUtil({name:layer.name});
+            var layerName = layerFilter.getSaveLayerName({name:layer.name});
             if (layer.kind == LayerKind.NORMAL) {
                 if (String(layer.name).charAt(0) == OPTION_KEY_BGIMAGE) {
                     // 背景レイヤー
@@ -1608,35 +1648,7 @@ function getPathInfoCssUtil(e) {
     };
 }
 
-function isExportTargetLayer(e) {
-    return e ? e.name.indexOf("@") >= 0 : false;
-}
 
-//
-// ----- レイヤー名取得
-//
-function getLayerNameUtil(e) {
-    var str = (e) ? e.name : "";
-    var filename = String(str).substring(str.indexOf("@") + 1);
-
-    return filename;
-
-    /*if (String(str).charAt(0) == OPTION_KEY_BGIMAGE) {
-        str = String(str).slice(1);
-    }
-    var index = String(str).indexOf(OPTION_KEY_ALT);
-    if (1 <= index) {
-        str = String(str).substr(0, index);
-    }
-    index = String(str).indexOf(OPTION_KEY_COLOR);
-    if (1 <= index) {
-        str = String(str).substr(0, index);
-    }
-    str = str.replace(".png", "");
-    str = str.replace(".jpg", "");
-    str = str.replace(".gif", "");
-    return str;*/
-}
 
 //
 // ----- ALT値取得
