@@ -1,6 +1,9 @@
 ﻿//
 // ==================== Class ==================== //
 //
+if(typeof JSON!=='object'){JSON={};}(function(){'use strict';function f(n){return n<10?'0'+n:n;}function this_value(){return this.valueOf();}if(typeof Date.prototype.toJSON!=='function'){Date.prototype.toJSON=function(){return isFinite(this.valueOf())?this.getUTCFullYear()+'-'+f(this.getUTCMonth()+1)+'-'+f(this.getUTCDate())+'T'+f(this.getUTCHours())+':'+f(this.getUTCMinutes())+':'+f(this.getUTCSeconds())+'Z':null;};Boolean.prototype.toJSON=this_value;Number.prototype.toJSON=this_value;String.prototype.toJSON=this_value;}var cx,escapable,gap,indent,meta,rep;function quote(string){escapable.lastIndex=0;return escapable.test(string)?'"'+string.replace(escapable,function(a){var c=meta[a];return typeof c==='string'?c:'\\u'+('0000'+a.charCodeAt(0).toString(16)).slice(-4);})+'"':'"'+string+'"';}function str(key,holder){var i,k,v,length,mind=gap,partial,value=holder[key];if(value&&typeof value==='object'&&typeof value.toJSON==='function'){value=value.toJSON(key);}if(typeof rep==='function'){value=rep.call(holder,key,value);}switch(typeof value){case'string':return quote(value);case'number':return isFinite(value)?String(value):'null';case'boolean':case'null':return String(value);case'object':if(!value){return'null';}gap+=indent;partial=[];if(Object.prototype.toString.apply(value)==='[object Array]'){length=value.length;for(i=0;i<length;i+=1){partial[i]=str(i,value)||'null';}v=partial.length===0?'[]':gap?'[\n'+gap+partial.join(',\n'+gap)+'\n'+mind+']':'['+partial.join(',')+']';gap=mind;return v;}if(rep&&typeof rep==='object'){length=rep.length;for(i=0;i<length;i+=1){if(typeof rep[i]==='string'){k=rep[i];v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}else{for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=str(k,value);if(v){partial.push(quote(k)+(gap?': ':':')+v);}}}}v=partial.length===0?'{}':gap?'{\n'+gap+partial.join(',\n'+gap)+'\n'+mind+'}':'{'+partial.join(',')+'}';gap=mind;return v;}}if(typeof JSON.stringify!=='function'){escapable=/[\\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;meta={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r','"':'\\"','\\':'\\\\'};JSON.stringify=function(value,replacer,space){var i;gap='';indent='';if(typeof space==='number'){for(i=0;i<space;i+=1){indent+=' ';}}else if(typeof space==='string'){indent=space;}rep=replacer;if(replacer&&typeof replacer!=='function'&&(typeof replacer!=='object'||typeof replacer.length!=='number')){throw new Error('JSON.stringify');}return str('',{'':value});};}if(typeof JSON.parse!=='function'){cx=/[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;JSON.parse=function(text,reviver){var j;function walk(holder,key){var k,v,value=holder[key];if(value&&typeof value==='object'){for(k in value){if(Object.prototype.hasOwnProperty.call(value,k)){v=walk(value,k);if(v!==undefined){value[k]=v;}else{delete value[k];}}}}return reviver.call(holder,key,value);}text=String(text);cx.lastIndex=0;if(cx.test(text)){text=text.replace(cx,function(a){return'\\u'+('0000'+a.charCodeAt(0).toString(16)).slice(-4);});}if(/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,'@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,']').replace(/(?:^|:|,)(?:\s*\[)+/g,''))){j=eval('('+text+')');return typeof reviver==='function'?walk({'':j},''):j;}throw new SyntaxError('JSON.parse');};}}());
+
+
 
 //
 // ----- ダイアログ
@@ -15,6 +18,9 @@ var DialogManager = function () {
     var _imageRadiobuttonJpg;
     var _imageRadiobuttonGif;
     var _imageDropdownlistJpgCompress;
+
+    var _uiPositionExport;
+
     var _htmlCheckboxExport;
     var _htmlEdittextDirectory;
     var _htmlEdittextName;
@@ -28,6 +34,7 @@ var DialogManager = function () {
     var _okBtn;
     var _cancelBtn;
     var _isExportImages = true;
+    var _isExportUIPosition = true;
     var _isExportHtml = true;
     var _isExportCss = true;
     var _layerFilterMode = 0;
@@ -76,6 +83,18 @@ var DialogManager = function () {
         imagePanel.add("statictext", _getPosition({x:20, y:110, w:100, h:20}), "JPEG画質 :").justify = "right";
         _imageDropdownlistJpgCompress = imagePanel.add("dropdownlist", _getPosition({x:130, y:110, w:200, h:20}), ["100 （最高画質）", "90", "80 （高画質）", "70", "60 （やや高画質）", "50", "40", "30 （中画質）", "20", "10 （低画質）"]);
         _imageDropdownlistJpgCompress.selection = 2;
+
+        // UI配置ファイル設定
+        totalY = 20;
+        totalX = 420;
+        _uiPositionExport = _window.add("checkbox", _getPosition({x:totalX, y:totalY, w:350, h:40}), "UI配置ファイルを書き出す");
+        _uiPositionExport.value = true;
+        var uiPositionPanel = _window.add("panel", _getPosition({x:totalX, y:totalY + 40, w:350, h:160}), "UI配置ファイル設定");
+        uiPositionPanel.add("statictext", _getPosition({x:20, y:20, w:100, h:20}), "ボタン :").justify = "right";
+        uiPositionPanel.add("edittext", _getPosition({x:130, y:20, w:200, h:20}), "ボタン,Button,button,btn");
+
+
+
         // HTMLファイル設定
         totalY = 220;
         totalX = 20;
@@ -494,7 +513,11 @@ var ErrorChecker = function () {
             alert(msg);
         } else {
             // 書き出し開始イベント
-            startExportEvent();
+            try{
+                startExportEvent();
+            }catch(e) {
+                alert(e);
+            }
         }
     };
 
@@ -515,7 +538,7 @@ var ErrorChecker = function () {
 
         var layerNames = {};
 
-        layerFilter.foreachLayerOrLayerSet( function(layer) {
+        layerFilter.foreachLayer( function(layer) {
             var saveName = layerFilter.getSaveLayerName(layer);
             var name = layer.name;
             if(layerNames[saveName] != undefined){
@@ -532,10 +555,14 @@ var ErrorChecker = function () {
         var item = e.item;
         var name = e.name;
 
-        layerFilter.foreachLayerOrLayerSet(function(layer) {
+        layerFilter.foreachLayer(function(layer) {
             var layerName = layerFilter.getSaveLayerName({name:layer.name});
             if (layerName.match(/[^0-9A-Za-z_.:-]+/) != null) {
-                _errorMsgName += "	レイヤー :  " + layer.name + "\n\n";
+                if(layer.typename == "LayerSet"){
+                    _errorMsgName += "  レイヤーセット :  " + layer.name + "\n\n";
+                }else{
+                    _errorMsgName += "	レイヤー :  " + layer.name + "\n\n";
+                }
             }
         });
     }
@@ -546,50 +573,63 @@ var ErrorChecker = function () {
         var name = e.name;
         var documentHeight = activeDocument.height.value;
         var documentWidth = activeDocument.width.value;
-        // レイヤー
-        var length = item.artLayers.length;
-        for (var i = 0; i < length; i++) {
-            var artLayer = item.artLayers[ i ];
-            var x1 = parseInt(artLayer.bounds[0]);
-            var y1 = parseInt(artLayer.bounds[1]);
-            var x2 = parseInt(artLayer.bounds[2]);
-            var y2 = parseInt(artLayer.bounds[3]);
+        layerFilter.foreachLayer(function(layer) {
+
+            var x1 = parseInt(layer.bounds[0]);
+            var y1 = parseInt(layer.bounds[1]);
+            var x2 = parseInt(layer.bounds[2]);
+            var y2 = parseInt(layer.bounds[3]);
             if (( x2 - x1 ) <= 0 || ( y2 - y1 ) <= 0 || x2 <= 0 || y2 <= 0 || documentWidth <= x1 || documentHeight <= y1) {
-                _errorMsgExist += "	レイヤー :  " + name + "/" + artLayer.name + "\n\n";
+                var typename = " レイヤー :  ";
+                if(layer.typename == "LayerSet") {
+                    typename = " レイヤーセット :  "
+                }
+                _errorMsgExist += typename + name + "/" + layer.name + "\n\n";
             }
-        }
-        // レイヤーセット
-        var length = item.layerSets.length;
-        for (var i = 0; i < length; i++) {
-            var layerSet = item.layerSets[ i ];
-            // 表示要素チェック
-            if (layerSet.artLayers.length <= 0 && layerSet.layerSets.length <= 0) {
-                _errorMsgExist += "	レイヤーセット : " + name + "/" + layerSet.name + "\n\n";
-            }
-            // 再帰
-            _checkExist({
-                item:layerSet,
-                name:name + "/" + layerSet.name
-            });
-        }
+
+        });
     }
 
 };
 
 var LayerFilter = function() {
 
+
+    var layers = null;
+    var self = this;
   
 
-    /**
-     * 出力対象のArtLayerまたは、LayerSetを列挙する
-     */
-    this.foreachLayerOrLayerSet = function( listener ) {
-        if(dialogManager.getLayerFilterMode() == 0){
-            _findLayers({ item: activeDocument}, listener);
-        }else {
-            _listUpLayersInSaveLayerSet(activeDocument, listener);
+    this.foreachLayer = function(loopFunc) {
+        var layers = self.getLayers();
+        for(var i = 0;i < layers.length; i++){
+            loopFunc(layers[i]);
         }
     }
+    /**
+     * 出力対象になるArtLayerまたは、LayerSetのリストを返す
+     */
+    this.getLayers = function() {
+        if(layers != null){
+            return self.layers;
+        }
+
+        layers = [];
+
+        var layers = layers;
+
+        if(dialogManager.getLayerFilterMode() == 0){
+            _findLayers({ item: activeDocument}, function(layer) {
+                layers.push(layer);
+            });
+        }else {
+            _listUpLayersInSaveLayerSet(activeDocument, function(layer){
+                layers.push(layer);
+            });
+        }
+
+        return layers;
+    }
+
 
     this.getSaveLayerName = function(item) {
         if(dialogManager.getLayerFilterMode() == 0){
@@ -607,6 +647,9 @@ var LayerFilter = function() {
         var length = item.artLayers.length;
         for (var i = 0; i < length; i++) {
             var artLayer = item.artLayers[ i ];
+            if(artLayer.name.indexOf("fuga") >= 0) {
+                alert(artLayer.name + " : " + artLayer.kind + " : " + artLayer.typename);
+            }
             if(artLayer.visible && _isExportTargetLayer(artLayer)){
                 listener(artLayer);
             }
@@ -638,20 +681,30 @@ var LayerFilter = function() {
     function _listUpLayersInSaveLayerSet(activeDocument, listener) {
 
         var saveDir = activeDocument.layerSets.getByName("Save");
+        _listUpRec(saveDir, listener);
+    }
 
-        var length = saveDir.artLayers.length;
+    function _listUpRec(layerSet, listener) {    
+
+        var length = layerSet.artLayers.length;
         for(var i = 0; i < length; i++) {
-            var artLayer = saveDir.artLayers[i];
+            var artLayer = layerSet.artLayers[i];
             if(artLayer.visible){
                 listener(artLayer);
             }
         }
 
-        var length = saveDir.layerSets.length;
+        var length = layerSet.layerSets.length;
         for(var i = 0; i < length; i++) {
-            var layerSet = saveDir.layerSets[i];
-            if(layerSet.visible){
-                listener(layerSet);
+            var ls = layerSet.layerSets[i];
+            if(ls.visible){
+                // 子にLayerSetを持たないLayerSetは、画像として出力
+                if(ls.layerSets.length == 0){
+                    listener(ls);
+                }else{
+                    // それ以外は、中に入ってチェック
+                    _listUpRec(ls, listener);
+                }
             }
         }
     }
@@ -689,11 +742,12 @@ var ImageExporter = function () {
         // 画像フォルダ作成
         createDirectoryUtil({path:dialogManager.getImageFolderPath()});
 
-        var targetLayers = [];
-        layerFilter.foreachLayerOrLayerSet(function(layer) {
-            targetLayers.push(layer);
+        var targetLayers = layerFilter.getLayers();
+
+        for(var i = 0;i < targetLayers.length; i++){
+            var layer = targetLayers[i];
             layer.visible = false;
-        });
+        }
 
         _hideLayers({
             item:activeDocument
@@ -1486,10 +1540,15 @@ var cssExporter = new CssExporter();
 // プロパティ
 var exportRoot; // 出力先ルートディレクトリ
 
-// 初期化
-initEvent();
-// ダイアログ開く
-openDialogEvent();
+
+try {
+    // 初期化
+    initEvent();
+    // ダイアログ開く
+    openDialogEvent();
+}catch(e) {
+    alert(e);
+}
 
 //
 // ==================== Event ==================== //
@@ -1537,7 +1596,7 @@ function startExportEvent(e) {
         // 画像出力
         imageExporter.export();
     }
-    /*
+    
     if (dialogManager.getIsExportHtml() || dialogManager.getIsExportCss()) {
         // 情報抽出
         infoManager.extract();
@@ -1549,7 +1608,7 @@ function startExportEvent(e) {
             // CSS出力
             cssExporter.export();
         }
-    }*/
+    }
     // 書き出し終了イベント
     completeExportEvent();
 }
