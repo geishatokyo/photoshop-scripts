@@ -43,7 +43,7 @@ Win(コマンドプロンプトで)
 
     URL: https://github.com/geishatokyo/photoshop-scripts.git
     保存するパス: /Applications/Adobe Photoshop CC 2017/Presets/Scripts/photoshop-scripts
-            Windowsは C:\program files\Adobe Photoshop CC 2017\Presets/Scripts
+            Windowsは C:\program files\Adobe Photoshop CC 2017\Presets/Scripts/photoshop-scripts
     名前: photoshop-scripts
 
 で作成して下さい。
@@ -116,5 +116,5 @@ Save
 
 ## 謝辞
 
-image_exporter.jsxは、https://github.com/knockknock-jp/psdexporter-jsxを参考に作りました。<br />
+image_exporter.jsxは、https://github.com/knockknock-jp/psdexporter-jsx を参考に作りました。<br />
 knockknock-jp様、ありがとうございます。
