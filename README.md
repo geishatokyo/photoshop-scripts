@@ -6,46 +6,63 @@ Macbook Pro Sierra 10.12.3 + Adobe Photoshop CC
 
 ## 導入方法
 
-Mac
+### 初回導入
 
-    /Applications/Adobe Photoshop CC 2017/Presets/Scripts
+Mac(ターミナルで)
 
-Win
+    cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts"
+    open .
 
-    C:\program files\Adobe Photoshop CC 2017\Presets/Scripts
+Win(コマンドプロンプトで)
+
+    cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts"
+    start .
 
 (Photoshopのバージョンによってパスはかわることがあるので、パスは自分の環境で確認して下さい)
 
 に移動し、このレポジトリを
 
-    git clone git@github.com:geishatokyo/photoshop-scripts.git gte-scripts
+    git clone git@github.com:geishatokyo/photoshop-scripts.git
     
-のコマンドでチェックアウトしてください。
-gte-scriptsの部分はディレクトリ名なので、好きな名前に変更して大丈夫です。
-チェックアウトが完了したら、Photoshopを再起動してください。
+のコマンドでcloneしてください。<br />
+SourceTreeの場合、上記のディレクトリで
 
-## 更新方法
+    git@github.com:geishatokyo/photoshop-scripts.git
+
+のURLで新規レポジトリを作成して下さい。
+
+cloneが完了したら、Photoshopを再起動してください。
+
+### スクリプトの最新版への更新方法
 
 cloneしたディレクトリで
 
     git pull
 
-を実行してください。
+を実行してください。<br />
+SourceTreeの場合は「プル」ボタンを押して下さい。
 
+### gitが入っていない場合の導入、更新方法
 
-## gitが入っていない場合の導入方法
-
-この右側あたりにあるDownload ZIPをクリックしてzipをダウンロードしてきて、
-導入方法に書かれているパスに解凍してください。
+この右側あたりにあるDownload ZIPをクリックしてzipをダウンロードしてきて、<br />
+導入方法に書かれているパスに解凍してください。<br />
 または、js/jsxファイルを手動でダウンロードしてきてもOKです。
 
+
+## コマンドの実行方法
+
+Photoshopのメニューから、ファイル＞スクリプトを選ぶと、以下のコマンドが実行できます。
+
+* image_exporter
 
 
 ## 各種コマンドの説明
 
 ### image_exporter.jsx
 
-2種類のモードで動作します
+2種類のモードで動作します。<br />
+コマンドを実行したら、ダイアログが表示されるので、そこで切り替えて下さい。
+
 
 #### 1. @付きレイヤー書き出しモード(推奨)
 
