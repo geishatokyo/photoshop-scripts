@@ -6,41 +6,49 @@ Macbook Pro Sierra 10.12.3 + Adobe Photoshop CC
 
 ## 導入方法
 
-### 初回導入
+※エンジニアは、ちゃんとhttps://ではなくgit@のほうでcloneして下さい。
+
+### CUIでの導入と更新(推奨)
+
 
 Mac(ターミナルで)
 
+    // 新規作成
     cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts"
-    open .
+    git clone https://github.com/geishatokyo/photoshop-scripts.git
+    // ↑のコマンドが失敗した場合は下のコマンドを実行してみて下さい。
+    sudo git clone https://github.com/geishatokyo/photoshop-scripts.git
+
+    // 最新版への更新
+    cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts"
+    git pull
+    (sudo git pull)
+
 
 Win(コマンドプロンプトで)
 
+    // 新規作成
     cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts"
-    start .
+    git clone https://github.com/geishatokyo/photoshop-scripts.git
+
+    // 最新版への更新
+    cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts"
+    git pull
 
 (Photoshopのバージョンによってパスはかわることがあるので、パスは自分の環境で確認して下さい)
 
-に移動し、このレポジトリを
+### SourceTreeでの導入と更新
 
-    git clone git@github.com:geishatokyo/photoshop-scripts.git
-    
-のコマンドでcloneしてください。<br />
-SourceTreeの場合、上記のディレクトリで
+新規レポジトリを、
 
-    git@github.com:geishatokyo/photoshop-scripts.git
+    URL: https://github.com/geishatokyo/photoshop-scripts.git
+    保存するパス: /Applications/Adobe Photoshop CC 2017/Presets/Scripts/photoshop-scripts
+            Windowsは C:\program files\Adobe Photoshop CC 2017\Presets/Scripts
+    名前: photoshop-scripts
 
-のURLで新規レポジトリを作成して下さい。
+で作成して下さい。
+更新は、「プル」ボタンを押せば出来ます。
 
-cloneが完了したら、Photoshopを再起動してください。
-
-### スクリプトの最新版への更新方法
-
-cloneしたディレクトリで
-
-    git pull
-
-を実行してください。<br />
-SourceTreeの場合は「プル」ボタンを押して下さい。
 
 ### gitが入っていない場合の導入、更新方法
 
