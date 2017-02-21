@@ -619,10 +619,14 @@ var LayerFilter = function() {
 
         if(dialogManager.getLayerFilterMode() == 0){
             _findLayers({ item: activeDocument}, function(layer) {
+                layer.isTarget = true;
+                layer.info = {};
                 layers.push(layer);
             });
         }else {
             _listUpLayersInSaveLayerSet(activeDocument, function(layer){
+                layer.isTarget = true;
+                layer.info = {};
                 layers.push(layer);
             });
         }
@@ -647,9 +651,6 @@ var LayerFilter = function() {
         var length = item.artLayers.length;
         for (var i = 0; i < length; i++) {
             var artLayer = item.artLayers[ i ];
-            if(artLayer.name.indexOf("fuga") >= 0) {
-                alert(artLayer.name + " : " + artLayer.kind + " : " + artLayer.typename);
-            }
             if(artLayer.visible && _isExportTargetLayer(artLayer)){
                 listener(artLayer);
             }
@@ -916,6 +917,7 @@ var ImageExporter = function () {
                     optionObj.ditherAmount = 100; // ディザーの割合
                     break;
             }
+            var imageFileName = layerFilter.getSaveLayerName({name:artLayer.name}) + getFileInfoFromFileNameUtil({name:artLayer.name}).ext;
             var imageFilePath = getPathInfoImagesUtil().folderPathFull + "/" + layerFilter.getSaveLayerName({name:artLayer.name}) + getFileInfoFromFileNameUtil({name:artLayer.name}).ext;
             var fileObj = new File(imageFilePath);
             activeDocument.exportDocument(fileObj, ExportType.SAVEFORWEB, optionObj);
@@ -926,6 +928,7 @@ var ImageExporter = function () {
             fileObj.remove();
             // 非表示
             artLayer.visible = false;
+            artLayer.info.imageFileName = imageFileName;
         }
     }
 
@@ -971,7 +974,7 @@ var InfoManager = function () {
             var layer = item.layers[ i ];
             var layoutInfoObj = null;
             var totalInfoObj = null;
-            var layerName = layerFilter.getSaveLayerName({name:layer.name});
+            var layerName = layer.name;//layerFilter.getSaveLayerName({name:layer.name});
             if (layer.kind == LayerKind.NORMAL) {
                 if (String(layer.name).charAt(0) == OPTION_KEY_BGIMAGE) {
                     // 背景レイヤー
@@ -1509,6 +1512,107 @@ var CssExporter = function () {
 
 };
 
+var UI_TYPE_BUTTON = "Button";
+var UI_TYPE_PANEL = "Panel";
+var UI_TYPE_LIST_VIEW = "ListView";
+var UI_TYPE_LIST_ITEM = "ListItem";
+var UI_TYPE_IMAGE = "Image";
+var UI_TYPE_TEXT = "Text";
+var UI_TYPE_DROPDOWN = "Dropdown";
+var UI_TYPE_CHECKBOX = "CheckBox";
+var UI_TYPE_NONE = "None";
+var UI_TYPE_WINDOW = "Window";
+
+var UIPositionExporter = function() {
+
+    var wordsLikeButton = ["button","ボタン","btn"];
+    var wordsLikePanel = ["panel","パネル"];
+
+
+    this.export = function() {
+
+
+    };
+
+
+    function _getUIType(layer) {
+
+        if(layer.typename == "Document") {
+            return UI_TYPE_WINDOW;
+        } else if(layer.kind == LayerKind.TEXT) {
+            return UI_TYPE_TEXT;
+        } else {
+            if(layer.typename == "LayerSet" && _containsOneOfWords(layer.name, wordsLikePanel)){
+                return UI_TYPE_PANEL;
+            } else if(layer.isTarget) {
+                if(_containsOneOfWords(layer.name, wordsLikeButton)) {
+                    return UI_TYPE_BUTTON;
+                } else {
+                    return UI_TYPE_IMAGE;
+                }
+            }else {
+                return UI_TYPE_NONE;
+            }
+        }
+    }
+
+
+    function _constructUITree(currentElement, layer) {
+        if(layer.typename == "LayerSet") {
+            var uiType = _getUIType(layer);
+            if( uiType == UI_TYPE_PANEL) {
+                var ele = _createElement(uiType, layer);
+                currentElement.children.push(ele);
+
+                for(var i = 0; i < layer.layers.length; i++){
+                    _constructUITree(ele, layer.layers[i]);
+                }
+            } else if(uiType == UI_TYPE_NONE){
+                for(var i = 0; i < layer.layers.length; i++){
+                    _constructUITree(currentElement, layer.layers[i]);
+                }
+            } else {
+                var ele = _createElement(uiType, layer);
+                currentElement.children.push(ele);
+            }
+
+
+        } else {
+            var uiType = _getUIType(layer);
+            if(uiType != UI_TYPE_NONE) {
+                var ele = _createElement(uiType, layer);
+                currentElement.children.push(ele);
+            }
+        }
+    }
+
+    function _containsOneOfWords(name, words) {
+        var name = name.toLowerCase();
+        for(var i = 0; i < words.length; i++) {
+            var word = words[i];
+            if( name.indexOf(word) >= 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function _createElement(uiType, layer) {
+        var obj = {
+            type: uiType,
+            children: []
+        };
+        if(layer.imageFileName) {
+            obj.imageFileName = lauyer.imageFileName;
+        }
+        return obj;
+    }
+
+
+
+};
+
+
 //
 // ==================== Action ==================== //
 //
@@ -1537,6 +1641,7 @@ var imageExporter = new ImageExporter();
 var infoManager = new InfoManager();
 var htmlExporter = new HtmlExporter();
 var cssExporter = new CssExporter();
+var uiPositionExporter = new UIPositionExporter();
 // プロパティ
 var exportRoot; // 出力先ルートディレクトリ
 
