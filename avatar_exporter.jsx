@@ -83,23 +83,10 @@ var DialogManager = function () {
         imagePanel.add("statictext", _getPosition({x:20, y:110, w:100, h:20}), "JPEG画質 :").justify = "right";
         _imageDropdownlistJpgCompress = imagePanel.add("dropdownlist", _getPosition({x:130, y:110, w:200, h:20}), ["100 （最高画質）", "90", "80 （高画質）", "70", "60 （やや高画質）", "50", "40", "30 （中画質）", "20", "10 （低画質）"]);
         _imageDropdownlistJpgCompress.selection = 2;
-        // デフォルト画像形式
-        _defaultFileType = FILE_KEY_PNG;
-        if (_imageRadiobuttonPng.value) {
-            _defaultFileType = FILE_KEY_PNG;
-        } else if (_imageRadiobuttonJpg.value) {
-            _defaultFileType = FILE_KEY_JPG;
-        } else if (_imageRadiobuttonGif.value) {
-            _defaultFileType = FILE_KEY_GIF;
-        }
-              
-        // その他オプション
+        
+        // OKボタン
         totalY = 220;
         totalX = 20;
-        _window.add("statictext", _getPosition({x:totalX, y:totalY, w:90, h:20}), "背景色 :").justify = "right";
-        _otherEdittextColor = _window.add("edittext", _getPosition({x:120, y:totalY, w:200, h:20}), "#ffffff");
-        // OKボタン
-        totalY = 300;
         _okBtn = _window.add("button", _getPosition({x:90, y:totalY, w:100, h:30}), "OK", { name:"ok" });
         _okBtn.onClick = function () {
             _close({flg:true});
@@ -232,8 +219,6 @@ var DialogManager = function () {
                 }
                 // 画像ファイル格納場所
                 _imageFolderPath = _setDirectoryText({str:_imageEdittextDirectory.text});
-                // 背景カラー
-                _otherBgColor = getHexColorTextUtil(_otherEdittextColor.text);
                 // JPEG圧縮率
                 _jpegCompressRate = 80;
                 selection = String(_imageDropdownlistJpgCompress.selection);
@@ -269,6 +254,16 @@ var DialogManager = function () {
                         _jpegCompressRate = 10;
                         break;
                 }
+                // デフォルト画像形式
+                _defaultFileType = FILE_KEY_PNG;
+                if (_imageRadiobuttonPng.value) {
+                    _defaultFileType = FILE_KEY_PNG;
+                } else if (_imageRadiobuttonJpg.value) {
+                    _defaultFileType = FILE_KEY_JPG;
+                } else if (_imageRadiobuttonGif.value) {
+                    _defaultFileType = FILE_KEY_GIF;
+                }
+
                 _window.close();
                 // エラーチェックイベント
                 checkErrorEvent();
@@ -708,9 +703,11 @@ var ImageExporter = function () {
             // Web用保存して閉じる
             var optionObj = new ExportOptionsSaveForWeb();
             var color = getLayerColorUtil({name:artLayer.name});
-            if (!color) {
-                color = dialogManager.getOtherBgColor();
+            
+            if(!color){
+                color = getHexColorTextUtil("#ffffff");
             }
+
             // マットカラー
             optionObj.matteColor = new RGBColor();
             optionObj.matteColor.hexValue = color;
