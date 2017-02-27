@@ -89,16 +89,8 @@ var DialogManager = function () {
         totalX = 20;
         _window.add("statictext", _getPosition({x:totalX, y:totalY, w:90, h:20}), "背景色 :").justify = "right";
         _otherEdittextColor = _window.add("edittext", _getPosition({x:120, y:totalY, w:200, h:20}), "#ffffff");
-        _window.add("statictext", _getPosition({x:20, y:totalY + 30, w:90, h:20}), "パス記述方式 :").justify = "right";
-        _otherRadiobuttonRelative = _window.add("radiobutton", _getPosition({x:120, y:totalY + 30, w:80, h:20}), "相対パス");
-        _otherRadiobuttonRelative.value = true;
-        _otherRadiobuttonAbsolute = _window.add("radiobutton", _getPosition({x:200, y:totalY + 30, w:80, h:20}), "絶対パス");
-        _otherRadiobuttonAbsolute.value = false;
-        _window.add("statictext", _getPosition({x:20, y:totalY + 60, w:90, h:20}), "文字コード :").justify = "right";
-        _otherDropdownlistCharaset = _window.add("dropdownlist", _getPosition({x:120, y:totalY + 60, w:200, h:20}), ["UTF-8", "Shift_JIS"]);
-        _otherDropdownlistCharaset.selection = 0;
         // OKボタン
-        totalY = 340;
+        totalY = 300;
         _okBtn = _window.add("button", _getPosition({x:90, y:totalY, w:100, h:30}), "OK", { name:"ok" });
         _okBtn.onClick = function () {
             _close({flg:true});
@@ -216,131 +208,64 @@ var DialogManager = function () {
     // 閉じる
     function _close(e) {
         if (e.flg) {
-            var str = "";
-            var selection = "";
-            // 画像ファイルを書き出すか否か
-            _isExportImages = _imageCheckboxExport.value;
-            // HTMLファイルを書き出すか否か
-            _isExportHtml = _htmlCheckboxExport.value;
-            // HTMLファイルを書き出すか否か
-            _isExportCss = _cssCheckboxExport.value;
+            try{
+                var str = "";
+                var selection = "";
+                // 画像ファイルを書き出すか否か
+                _isExportImages = _imageCheckboxExport.value;
 
-            // Layerのフィルター
-            for(var i = 0; i < _layerFilterModeList.items.length; i++) {
-                if( _layerFilterModeList.selection == _layerFilterModeList.items[i]) {
-                    _layerFilterMode = i;
-                    break;
+                // Layerのフィルター
+                for(var i = 0; i < _layerFilterModeList.items.length; i++) {
+                    if( _layerFilterModeList.selection == _layerFilterModeList.items[i]) {
+                        _layerFilterMode = i;
+                        break;
+                    }
                 }
+                // 画像ファイル格納場所
+                _imageFolderPath = _setDirectoryText({str:_imageEdittextDirectory.text});
+                // 背景カラー
+                _otherBgColor = getHexColorTextUtil(_otherEdittextColor.text);
+                // JPEG圧縮率
+                _jpegCompressRate = 80;
+                selection = String(_imageDropdownlistJpgCompress.selection);
+                switch (selection) {
+                    case "100 （最高画質）":
+                        _jpegCompressRate = 100;
+                        break;
+                    case "90":
+                        _jpegCompressRate = 90;
+                        break;
+                    case "80 （高画質）":
+                        _jpegCompressRate = 80;
+                        break;
+                    case "70":
+                        _jpegCompressRate = 70;
+                        break;
+                    case "60 （やや高画質）":
+                        _jpegCompressRate = 60;
+                        break;
+                    case "50":
+                        _jpegCompressRate = 50;
+                        break;
+                    case "40":
+                        _jpegCompressRate = 40;
+                        break;
+                    case "30 （中画質）":
+                        _jpegCompressRate = 30;
+                        break;
+                    case "20":
+                        _jpegCompressRate = 20;
+                        break;
+                    case "10 （低画質）":
+                        _jpegCompressRate = 10;
+                        break;
+                }
+                _window.close();
+                // エラーチェックイベント
+                checkErrorEvent();
+            } catch(e) {
+                alert(e);
             }
-            // 画像ファイル格納場所
-            _imageFolderPath = _setDirectoryText({str:_imageEdittextDirectory.text});
-            // HTMLファイル格納場所
-            _htmlFolderPath = _setDirectoryText({str:_htmlEdittextDirectory.text});
-            // CSSファイル格納場所
-            _cssFolderPath = _setDirectoryText({str:_cssEdittextDirectory.text});
-            // HTMLファイル名
-            _htmlFileName = _setFileNameText({str:_htmlEdittextName.text});
-            // CSSファイル名
-            _cssFileName = _setFileNameText({str:_cssEdittextName.text});
-            // 背景カラー
-            _otherBgColor = getHexColorTextUtil(_otherEdittextColor.text);
-            // エンコード
-            _encodeInfo = {
-                system:"UTF8",
-                charset:"utf-8"
-            };
-            selection = String(_otherDropdownlistCharaset.selection);
-            switch (selection) {
-                case "UTF-8":
-                    _encodeInfo = {
-                        system:"UTF8",
-                        charset:"utf-8"
-                    };
-                    break;
-                case "Shift_JIS":
-                    _encodeInfo = {
-                        system:"SJIS",
-                        charset:"shift-jis"
-                    };
-                    break;
-            }
-            // JPEG圧縮率
-            _jpegCompressRate = 80;
-            selection = String(_imageDropdownlistJpgCompress.selection);
-            switch (selection) {
-                case "100 （最高画質）":
-                    _jpegCompressRate = 100;
-                    break;
-                case "90":
-                    _jpegCompressRate = 90;
-                    break;
-                case "80 （高画質）":
-                    _jpegCompressRate = 80;
-                    break;
-                case "70":
-                    _jpegCompressRate = 70;
-                    break;
-                case "60 （やや高画質）":
-                    _jpegCompressRate = 60;
-                    break;
-                case "50":
-                    _jpegCompressRate = 50;
-                    break;
-                case "40":
-                    _jpegCompressRate = 40;
-                    break;
-                case "30 （中画質）":
-                    _jpegCompressRate = 30;
-                    break;
-                case "20":
-                    _jpegCompressRate = 20;
-                    break;
-                case "10 （低画質）":
-                    _jpegCompressRate = 10;
-                    break;
-            }
-            // HTMLドキュメント形式
-            _htmlDoctype = HTML_KEY_HTML5;
-            selection = String(_htmlDropdownlistDoctype.selection);
-            switch (selection) {
-                case "HTML5":
-                    _htmlDoctype = HTML_KEY_HTML5;
-                    break;
-                case "Jade":
-                    _htmlDoctype = HTML_KEY_JADE;
-                    break;
-                case "XHTML 1.0 Transitional":
-                    _htmlDoctype = HTML_KEY_XHTML;
-                    break;
-                case "HTML 4.01 Transitional":
-                    _htmlDoctype = HTML_KEY_HTML4;
-                    break;
-            }
-            // HTMLタイトル
-            _htmlTitle = _htmlEdittextTitle.text;
-            // デフォルト画像形式
-            _defaultFileType = FILE_KEY_PNG;
-            if (_imageRadiobuttonPng.value) {
-                _defaultFileType = FILE_KEY_PNG;
-            } else if (_imageRadiobuttonJpg.value) {
-                _defaultFileType = FILE_KEY_JPG;
-            } else if (_imageRadiobuttonGif.value) {
-                _defaultFileType = FILE_KEY_GIF;
-            }
-            // 絶対配置
-            _isAbsolute = _cssCheckboxLayout.value;
-            // 絶対パス相対パス
-            _isRelativePath = true;
-            if (_otherRadiobuttonAbsolute.value == true) {
-                _isRelativePath = false;
-            }
-            // HTMLから見たルートディレクトリパス
-            _rootPathFromHtml = _getRootPath({path:_htmlFolderPath});
-            // CSSから見たルートディレクトリパス
-            _rootPathFromCss = _getRootPath({path:_cssFolderPath});
-            _window.close();
-            // エラーチェックイベント
-            checkErrorEvent();
         } else {
             _window.close();
             alert("取り消しました");
@@ -574,6 +499,7 @@ var LayerFilter = function() {
             return self.layers;
         }
 
+
         layers = [];
 
         var layers = layers;
@@ -729,6 +655,7 @@ var ImageExporter = function () {
     // レイヤー非表示
     function _hideLayers(e) {
         var item = e.item;
+        //alert(JSON.stringify(item));
         // レイヤー
         var length = item.artLayers.length;
         for (var i = 0; i < length; i++) {
@@ -1106,12 +1033,16 @@ try {
 // ----- 初期化
 //
 function initEvent(e) {
-    // プロパティ初期化
-    exportRoot = activeDocument.path + "/" + String(activeDocument.name).substring(0, String(activeDocument.name).length - 4);
-    // インスタンス初期化
-    dialogManager.init();
-    errorChecker.init();
-    imageExporter.init();
+    try{
+        // プロパティ初期化
+        exportRoot = activeDocument.path + "/" + String(activeDocument.name).substring(0, String(activeDocument.name).length - 4);
+        // インスタンス初期化
+        dialogManager.init();
+        errorChecker.init();
+        imageExporter.init();
+    }catch(e) {
+        alert(e);
+    }
 }
 
 //
@@ -1135,13 +1066,17 @@ function checkErrorEvent(e) {
 //
 function startExportEvent(e) {
     // ルートフォルダ作成
-    var folderObj = new Folder(exportRoot);
-    folderObj.create();
-    // 画像出力
-    imageExporter.export();
+    try{
+        var folderObj = new Folder(exportRoot);
+        folderObj.create();
+        // 画像出力
+        imageExporter.export();
     
-    // 書き出し終了イベント
-    completeExportEvent();
+        // 書き出し終了イベント
+        completeExportEvent();
+    } catch (e) {
+        alert(e);
+    }
 }
 
 //
