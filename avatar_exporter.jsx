@@ -83,7 +83,16 @@ var DialogManager = function () {
         imagePanel.add("statictext", _getPosition({x:20, y:110, w:100, h:20}), "JPEG画質 :").justify = "right";
         _imageDropdownlistJpgCompress = imagePanel.add("dropdownlist", _getPosition({x:130, y:110, w:200, h:20}), ["100 （最高画質）", "90", "80 （高画質）", "70", "60 （やや高画質）", "50", "40", "30 （中画質）", "20", "10 （低画質）"]);
         _imageDropdownlistJpgCompress.selection = 2;
-
+        // デフォルト画像形式
+        _defaultFileType = FILE_KEY_PNG;
+        if (_imageRadiobuttonPng.value) {
+            _defaultFileType = FILE_KEY_PNG;
+        } else if (_imageRadiobuttonJpg.value) {
+            _defaultFileType = FILE_KEY_JPG;
+        } else if (_imageRadiobuttonGif.value) {
+            _defaultFileType = FILE_KEY_GIF;
+        }
+              
         // その他オプション
         totalY = 220;
         totalX = 20;
