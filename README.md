@@ -20,7 +20,7 @@ Mac(ターミナルで)
     sudo git clone https://github.com/geishatokyo/photoshop-scripts.git
 
     // 最新版への更新
-    cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts"
+    cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts/photosho-scripts"
     git pull
     (sudo git pull)
 
@@ -32,7 +32,7 @@ Win(コマンドプロンプトで)
     git clone https://github.com/geishatokyo/photoshop-scripts.git
 
     // 最新版への更新
-    cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts"
+    cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts/photoshop-scripts"
     git pull
 
 (Photoshopのバージョンによってパスはかわることがあるので、パスは自分の環境で確認して下さい)
