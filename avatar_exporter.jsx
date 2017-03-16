@@ -14,7 +14,7 @@ $.evalFile(new File(g_LibFolderPath + "structure_loader.jsx"));
 
 var g_SizeUnit = "px";
 
-var ExportImages = false;
+var ExportImages = true;
 
 
 var AvatarExporter = function(){

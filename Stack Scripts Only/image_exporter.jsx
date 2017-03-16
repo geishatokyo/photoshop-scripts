@@ -13,48 +13,74 @@ var ImageExporter = function () {
 
     this.pathSetting = pathSetting;
 
+    /*
+    TextLayerの出力を抑制する
+    */
+    this.dontExportTextLayer = true;
 
+    /*
+    PNG出力はせずに、保存先のファイルパスだけを返す
+    可視な子レイヤーが存在しないLayerSetの場合は、画像は出力されずnullが帰る
+    @param name 保存ファイル名
+    @param layer 出力するレイヤー
+    @param additionalIgnoreLayers 出力するレイヤーの子要素の内、出力しないレイヤー
+    @return 保存されたファイルのパス
+    */
     this.getImagePath = function(name, layer, additionalIgnoreLayers) {
 
-        var additionalInvisibled = undefined;
-        // 追加無視レイヤーの不可視化
-        if(additionalIgnoreLayers){
-            additionalInvisibled = additionalIgnoreLayers.filter(function(layer){
-                if(layer.visible){
-                    layer.visible = false;
-                    return true;
-                }else return false;
-            });
-        }
-
-        // 可視の子要素がない場合は、画像を出力しない
-        var isEmpty = _countVisibleChildren(layer) == 0;
-
-        if(additionalInvisibled){
-            additionalInvisibled.foreach(function(layer){
-                layer.visible = true;
-            });
-        }
-
-        if(isEmpty) return null;
-
-        var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
-        layer.image = imagePath.name;
-        return imagePath;
+        return _scope(layer, additionalIgnoreLayers, function() {
+            var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
+            layer.image = imagePath.name;
+            return imagePath;
+        });
     }
 
-
+    /*
+    指定したLayerをPNGとして出力する。
+    可視な子レイヤーが存在しないLayerSetの場合は、画像は出力されずnullが帰る
+    @param name 保存ファイル名
+    @param layer 出力するレイヤー
+    @param additionalIgnoreLayers 出力するレイヤーの子要素の内、出力しないレイヤー
+    @return 保存されたファイルのパス
+    */
     this.exportAsPNG = function(name, layer, additionalIgnoreLayers) {
 
+        var baseDoc = app.activeDocument;
         // *****
         // 1. 必要なレイヤー以外を不可視状態に
         // 2. Documentをコピーし、表示範囲でCrop
         // 3. コピーしたDocumentをPNGとして保存
         // の手順で出力している
         // *****
+        return _scope(layer, additionalIgnoreLayers, function() {
+            // コピーしてCrop
+            baseDoc.activeLayer = layer;
+            var cloneDoc = baseDoc.duplicate(name);
+            cloneDoc.crop(layer.bounds);
+
+            // 出力
+            var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
+            _exportToPNG(imagePath, cloneDoc);
+            layer.image = imagePath.name;
+
+            app.activeDocument = baseDoc;
+            if(name != "ListItem") cloneDoc.close(SaveOptions.DONOTSAVECHANGES);
+            return imagePath;
+        });
+
+    };
+
+    /*
+    Layerの不可視化と復元を行う。
+    @param scopeFunc 実際の挟み込みたい処理
+    */
+    function _scope(layer, additionalIgnoreLayers, scopeFunc) {
+
 
         var additionalInvisibled = undefined;
 
+        
+        var invisibled = _makeInvisibleExcept(layer);
         // 追加無視レイヤーの不可視化
         if(additionalIgnoreLayers){
             additionalInvisibled = additionalIgnoreLayers.filter(function(layer){
@@ -65,100 +91,83 @@ var ImageExporter = function () {
             });
         }
 
+        var value = null;
         // 可視の子要素がない場合は、画像を出力しない
         if(_countVisibleChildren(layer) == 0) {
-            if(additionalInvisibled){
-                additionalInvisibled.foreach(function(layer){
-                    layer.visible = true;
-                });
-            }
-            return null;
+            // do nothing
+        }else {
+            value = scopeFunc();
         }
 
-        // 不可視化
-    	var invisibled = _makeAllLayersInvisible();
-    	var visibled = _makeLayersVisible(layer, invisibled);
-
-        // コピーしてCrop
-        var baseDoc = app.activeDocument;
-        baseDoc.activeLayer = layer;
-        var cloneDoc = baseDoc.duplicate(name);
-        cloneDoc.crop(layer.bounds);
-
-        // 出力
-        var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
-        _exportToPNG(imagePath, cloneDoc);
-        layer.image = imagePath.name;
-
-        app.activeDocument = baseDoc;
-        cloneDoc.close(SaveOptions.DONOTSAVECHANGES);
 
         // 不可視状態の復帰
-    	for(var i = 0;i < invisibled.length;i ++) {
-    		invisibled[i].visible = true;
-    	}
+        for(var i = 0;i < invisibled.length;i ++) {
+            invisibled[i].visible = true;
+        }
         if(additionalInvisibled){
             additionalInvisibled.foreach(function(layer){
                 layer.visible = true;
             });
         }
 
-        return imagePath;
-
-    };
-
-
-    function _makeAllLayersInvisible() {
-    	var invisibledLayers = [];
-    	var doc = app.activeDocument;
-    	for(var i = 0;i < doc.layers.length;i ++){
-    		var l = doc.layers[i];
-    		_makeInvisible(l, invisibledLayers);
-    	}
-    	return invisibledLayers;
+        return value;
     }
 
-    function _makeInvisible(layer, changedLayers) {
-    	if(!layer.visible) return;
-    	if(layer.typename == "ArtLayer"){
-			layer.visible = false;
-			changedLayers.push(layer);
-    	}else{
-	    	for(var i = 0;i < layer.layers.length;i ++){
-	    		var l = layer.layers[i];
-	    		_makeInvisible(l, changedLayers);
-	    	}
+    /**
+    visibleLayerで指定したレイヤー以外を不可視化する
+    */
+    function _makeInvisibleExcept(visibleLayer) {
+        var invisibledLayers = [];
+        var doc = app.activeDocument;
+        for(var i = 0;i < doc.layers.length;i ++){
+            var l = doc.layers[i];
+            _rec_makeInvisibleExcept(l, visibleLayer, invisibledLayers);
+        }
+        return invisibledLayers;
+    }
+    function _rec_makeInvisibleExcept(layer, visibleLayer, changedLayers) {
+        if(layer === visibleLayer){
 
-    	}
-    }
-    /*
-    
-    @param layer   再帰的にvisibleにするレイヤー
-    @param targets Visible化する対象。このリストに含まれているものだけVisible=trueに変更する
-    @return visibleが変更されたレイヤーのリスト
-     */
-    function _makeLayersVisible(layer, targets) {
-		var visibledLayers = [];
-		_makeVisible(layer, visibledLayers, targets);
-		return visibledLayers;
-    }
-    function _makeVisible(layer, changedLayers, targets) {
-    	if(layer.typename == "ArtLayer"){
-            if(layer.kind != LayerKind.TEXT &&
-                targets.contains(layer)) {
-			    layer.visible = true;
-			    changedLayers.push(layer);
+            // TextLayerの出力をしない場合、追加でチェック
+            if(self.dontExportTextLayer){
+                _rec_makeTextLayersInvisible(layer, changedLayers);
             }
-    	}else{
-	    	for(var i = 0;i < layer.layers.length;i ++){
-	    		var l = layer.layers[i];
-	    		_makeVisible(l, changedLayers, targets);
-	    	}
+            return true;
+        }
+        if(!layer.visible) return false;
 
-    	}
+
+        if(layer.typename == "LayerSet"){
+            var existsVisibleLayer = false;
+            for(var i = 0;i < layer.layers.length;i ++){
+                var l = layer.layers[i];
+                existsVisibleLayer |= _rec_makeInvisibleExcept(l, visibleLayer, changedLayers);
+            }
+            if(!existsVisibleLayer) {
+                layer.visible = false;
+                changedLayers.push(layer);
+            }
+            return true;
+
+        }else { // ArtLayer
+            layer.visible = false;
+            changedLayers.push(layer);
+            return false;
+        }
+
     }
-
-
+    function _rec_makeTextLayersInvisible(layer, changedLayers){
+        if(!layer.visible) return;
+        if(layer.kind == LayerKind.TEXT){
+            layer.visible = false;
+            changedLayers.push(layer);
+        }else if(layer.typename == "LayerSet"){
+            for(var i = 0;i < layer.layers.length;i++){
+                var l = layer.layers[i];
+                _rec_makeTextLayersInvisible(l, changedLayers);
+            }
+        }
+    }
 
 
     function _exportToPNG(path, doc) {
