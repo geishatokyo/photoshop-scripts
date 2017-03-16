@@ -68,3 +68,57 @@ function arrayIncludes(array, element, fromIndex) {
 
 var pathSetting = new PathSetting();
 
+
+
+
+
+// -------- Scala like extentions -------------
+
+
+
+Array.prototype.foreach = function(func) {
+    for(var i = 0;i < this.length;i++){
+        func(this[i]);
+    }
+    return this;
+};
+
+Array.prototype.filter = function(returnBool) {
+    var newArray = [];
+    for(var i = 0;i < this.length;i++){
+        if(returnBool(this[i])) newArray.push(this[i]);
+    }
+    return newArray;
+};
+Array.prototype.flatMap = function(returnArrayObj) {
+    var newArray = [];
+    for(var i = 0;i < this.length;i++){
+        newArray.concat(returnArrayObj(this[i]));
+    }
+    return newArray;
+}
+
+Array.prototype.map = function(returnAnyObject) {
+    var newArray = [];
+    for(var i = 0;i < this.length;i++){
+        newArray.push(returnAnyObject(this[i]));
+    }
+    return newArray;
+};
+
+Array.prototype.find = function(returnBool) {
+    for(var i = 0;i < this.length;i++){
+        if(returnBool(this[i])) return this[i];
+    }
+    return null;
+}
+
+
+Array.prototype.contains = function(elem) {
+    return this.find( function(e) { 
+        return e === elem;
+    }) != null;
+}
+
+
+

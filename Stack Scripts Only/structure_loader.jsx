@@ -88,7 +88,6 @@ var StructureLoader = function() {
                 case ComponentType.Image:
                 case ComponentType.InputText:
                     _findTextLayers(obj, layer);
-                    obj.image = obj.name + ".png";
                 break;
                 case ComponentType.None:
                     return;
@@ -201,7 +200,7 @@ var StructureLoader = function() {
         // ListViewItemの要素を画像に取り込まないようにする
         var ignoreLayers = [];
         for(var i = 0;i < obj.children.length;i++){
-            ignoreLayers.push(obj.children[i]);
+            ignoreLayers.push(obj.children[i].layer);
         }
         obj.ignoreLayers = ignoreLayers;
 
@@ -372,7 +371,7 @@ var TypeGuesser = function() {
         [InputTextNames, ComponentType.InputText],
         [ListViewItemNames, ComponentType.ListViewItem],
         [ListViewNames, ComponentType.ListView],
-        [CheckBoxNames, ComponentType.CheckBox],
+        [CheckBoxNames, ComponentType.CheckBox]
     ];
 
     var self = this;
@@ -391,17 +390,15 @@ var TypeGuesser = function() {
             return ComponentType.Text;
         }
 
-        for(var i in TypeChecks){
+        for(var i = 0;i < TypeChecks.length; i++){
             var t = TypeChecks[i];
-            if(_containsOne(layer.name, t[0])) {
+            if(_containsOne(layer.name, t[0])){
                 return t[1];
             }
         }
 
-
         return self.defaultComponentType;
     };
-
     function _containsOne(str, candidates) {
         str = str.toLowerCase();
         for(var i in candidates){
@@ -412,6 +409,7 @@ var TypeGuesser = function() {
         }
         return false;
     }
+
 
 };
 
