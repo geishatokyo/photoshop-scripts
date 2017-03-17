@@ -11,25 +11,32 @@ $.evalFile(new File(g_LibFolderPath + "util.jsx"));
 $.evalFile(new File(g_LibFolderPath + "serialize.jsx"));
 $.evalFile(new File(g_LibFolderPath + "image_exporter.jsx"));
 $.evalFile(new File(g_LibFolderPath + "structure_loader.jsx"));
+$.evalFile(new File(g_LibFolderPath + "setting_dialog.jsx"));
 
 var g_SizeUnit = "px";
 
-var ExportImages = true;
 
 
-var AvatarExporter = function(){
-
-    var exportAsPNG = null;
-
+var AvatarExporter = function(setting){
 
     var exportAsPNG = undefined;
-    if(ExportImages) {
-        exportAsPNG = imageExporter.exportAsPNG;
-    }else{
-        exportAsPNG = imageExporter.getImagePath;
+
+    this.export = function() {
+        var structure = structureLoader.load();
+        if(setting.exportImage) {
+            exportAsPNG = imageExporter.exportAsPNG;
+        }else{
+            exportAsPNG = imageExporter.getImagePath;
+        }
+        _exportPNGs(structure);
+
+        if(setting.exportStructure) {
+            var jsonPath = pathSetting.exportDir + "/structure.json";
+            saveToJsonFile(jsonPath, copyExcluding(structure, ["layer","ignoreLayers"]));
+        }
+
     }
 
-    this.exportPNGs = _exportPNGs;
 
     function _exportPNGs(node) {
 
@@ -79,17 +86,28 @@ var AvatarExporter = function(){
 
 }
 
+function showSettingDialog(func) {
+    var dialog = new SettingDialog("UI配置ファイル書き出し");
+
+    dialog.addCheckbox("exportImage","画像を書き出す",true);
+    dialog.addCheckbox("exportStructure","UI配置ファイルを書き出す",true);
+
+
+    dialog.show(onDialogClosed);
+
+}
+
+function onDialogClosed(ok) {
+    if(ok) {
+        var avatarExporter = new AvatarExporter();
+        avatarExporter.export();
+        alert("完了");
+    }
+}
+
 
 function main() {
-    var avatarExporter = new AvatarExporter();
-    var structure = structureLoader.load();
-    // alert(JSON.stringify(copyExcluding(structure, ["layer","ignoreLayers"])));
-
-    avatarExporter.exportPNGs(structure);
-    var jsonPath = pathSetting.exportDir + "/structure.json";
-    saveToJsonFile(jsonPath, copyExcluding(structure, ["layer","ignoreLayers"]));
-
-    alert("完了");
+    showSettingDialog();
 
 }
 

@@ -12,6 +12,9 @@ function loadFromJsonFile(f) {
 	if(!(f instanceof File)) {
 		f = new File(f);
 	}
+    if(!f.exists) {
+        return null;
+    }
 	f.open("r");
 	var str = f.read();
 	f.close();
@@ -24,6 +27,7 @@ function saveToJsonFile(f, obj) {
 	if(!(f instanceof File)) {
 		f = new File(f);
 	}
+
 	var str = JSON.stringify(obj);
 	f.open("w");
 	f.write(str);
