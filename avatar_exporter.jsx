@@ -28,6 +28,9 @@ var AvatarExporter = function(setting){
         }else{
             exportAsPNG = imageExporter.getImagePath;
         }
+
+        imageExporter.dontExportTextLayer = !setting.includeTextToImage;
+
         _exportPNGs(structure);
 
         if(setting.exportStructure) {
@@ -92,14 +95,16 @@ function showSettingDialog(func) {
     dialog.addCheckbox("exportImage","画像を書き出す",true);
     dialog.addCheckbox("exportStructure","UI配置ファイルを書き出す",true);
 
+    dialog.addLabel("詳細設定");
+    dialog.addCheckbox("includeTextToImage","TextLayerも画像に含める", false)
 
     dialog.show(onDialogClosed);
 
 }
 
-function onDialogClosed(ok) {
+function onDialogClosed(ok, setting) {
     if(ok) {
-        var avatarExporter = new AvatarExporter();
+        var avatarExporter = new AvatarExporter(setting);
         avatarExporter.export();
         alert("完了");
     }

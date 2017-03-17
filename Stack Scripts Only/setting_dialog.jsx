@@ -150,14 +150,14 @@ var SettingDialog = function(title, settingFile) {
             var input = currentPanel.add("dropdownlist", undefined, values);
             input.size = [LineWidth, LineHeight];
         }
-    }
+    };
     this.addButton = function(label, eventHandler) {
         var button = currentPanel.add("button",undefined);
         button.onClick = function() {
             settingUpdator.updateValues();
             eventHandler(setting);
         };
-    }
+    };
 
     this.withPanel = function(title, initScopeFunc) {
         var parent = currentPanel;
@@ -167,6 +167,7 @@ var SettingDialog = function(title, settingFile) {
         currentPanel = parent;
         return panel;
     };
+
 
     /*
     水平方向にControlが並ぶGroupを追加する。
@@ -212,20 +213,20 @@ var SettingDialog = function(title, settingFile) {
         _close();
     };
 
-    this.onClosed = function(setting){
+    this.onClosed = function(ok, setting){
     };
 
 
     function _close() {
-        self.onClosed(setting);
+        self.onClosed(self.ok, setting);
         if(self.ok && settingFile != null) {
             settingUpdator.updateValues();
             saveToJsonFile(settingFile,setting);
         }
         _window.close();
 
-        if(onClosedEventHandler){
-            onClosedEventHandler(ok);
+        if(onClosedEventHandler != null){
+            onClosedEventHandler(self.ok, setting);
         }
     }
 };

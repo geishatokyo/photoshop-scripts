@@ -64,7 +64,7 @@ var ImageExporter = function () {
             layer.image = imagePath.name;
 
             app.activeDocument = baseDoc;
-            if(name != "ListItem") cloneDoc.close(SaveOptions.DONOTSAVECHANGES);
+            cloneDoc.close(SaveOptions.DONOTSAVECHANGES);
             return imagePath;
         });
 
