@@ -72,7 +72,7 @@ var pathSetting = new PathSetting();
 
 String.prototype.endsWith = function(word) {
     var i = this.indexOf(word);
-    return i == this.length - word.length;
+    return i >= 0 && i == this.length - word.length;
 };
 
 
