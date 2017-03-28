@@ -11,6 +11,9 @@ var ComponentType = {
     Window: "Window",
     InputText: "InputText",
 
+    VarText: "VarText",
+    VarImage: "VarImage",
+
     None : "None"
 };
 
@@ -129,14 +132,40 @@ var StructureLoader = function() {
     /**
       Textに関する要素を設定する
     */
-    function _setTextProps(obj, layer) {
+    function _setTextProps(obj, layer, isButtonText) {
         // TextLayerの場合は、素直に設定
         if(layer.typename == "ArtLayer" && layer.kind == LayerKind.TEXT){
             var textItem = layer.textItem;
 
-            obj.text = textItem.contents;
+            obj.text = textItem.contents.replace("\r","\n");
             obj.fontSize = textItem.size.as(g_SizeUnit);
+            obj.fontColor = textItem.color.rgb.hexValue;
             obj.layer = layer;
+
+            if(isButtonText){
+                obj.textAlign = "center";
+            }
+
+            // TextLayerは位置情報が微妙なので、再計算
+
+            if(obj.textAlign == "center"){
+                var newHeight = obj.fontSize * 1.5;
+                var newWidth = obj.width * 2;
+                var newY = obj.y + obj.height * 0.5 - newHeight * 0.5;
+                var newX = obj.x + obj.width * 0.5 - newWidth * 0.5;
+                obj.x = newX;
+                obj.y = newY;
+                obj.height = newHeight;
+                obj.width = newWidth;
+            }else {
+                var newHeight = obj.fontSize * 1.5;
+                var newWidth = obj.width * 2;
+                var newY = obj.y + obj.height * 0.5 - newHeight * 0.5;
+                obj.y = newY;
+                obj.height = newHeight;
+                obj.width = newWidth;
+            }
+
 
         }else if(layer.typename == "LayerSet"){
             // LayerSetがTextとして扱われている場合は、
@@ -151,7 +180,7 @@ var StructureLoader = function() {
                 }
             } 
             if(firstTextLayer != null){
-                _setTextProps(obj, firstTextLayer);
+                _setTextProps(obj, firstTextLayer, isButtonText);
             }else {
                 throw new Error("No TextLayer in LayerSet:" + layer.name);
             }
@@ -176,6 +205,7 @@ var StructureLoader = function() {
                 break;
             }
         }
+        // ListViewItemが無い場合、一番はじめのPanel要素をListViewItemにする
         if(listViewItem == null){
             for(var i = 0;i < obj.children.length;i++){
                 var child = obj.children[i];
@@ -185,6 +215,7 @@ var StructureLoader = function() {
                 }
             }
         }
+        // Panelも無い場合、一番最初の子供要素をListViewItemにする
         if(listViewItem == null){
             if(obj.children.length > 0){
                 listViewItem = obj.children[0];
@@ -236,13 +267,18 @@ var StructureLoader = function() {
                         variableIndex += 1;
                     }
 
+                    var componentType = ComponentType.Text;
+                    if(typeGuesser.maybeVaribale(l)){
+                        componentType = ComponentType.VarText;
+                    }
+
                     var label = {
-                        type: ComponentType.Text,
+                        type: componentType,
                         name: name,
                         layer: l
                     };
                     _setCommonProps(label, l);
-                    _setTextProps(label, l);
+                    _setTextProps(label, l, obj.type == ComponentType.Button);
                     children.push(label);
                 }
             }
@@ -332,6 +368,15 @@ var NameRule = function() {
 
 var TypeGuesser = function() {
 
+    var VarTextNames = [
+        "vartext",
+        "var_text"
+    ];
+    var VarImageNames = [
+        "varimage",
+        "var_image"
+    ];
+
     var ButtonNames = [
         "button",
         "btn",
@@ -366,6 +411,8 @@ var TypeGuesser = function() {
     ];
 
     var TypeChecks = [
+        [VarTextNames, ComponentType.VarText],
+        [VarImageNames, ComponentType.VarImage],
         [ButtonNames, ComponentType.Button],
         [PanelNames, ComponentType.Panel],
         [InputTextNames, ComponentType.InputText],
@@ -373,6 +420,12 @@ var TypeGuesser = function() {
         [ListViewNames, ComponentType.ListView],
         [CheckBoxNames, ComponentType.CheckBox]
     ];
+
+    var VariableKeywords = [
+        "変数",
+        "variable"
+    ];
+
 
     var self = this;
 
@@ -386,19 +439,66 @@ var TypeGuesser = function() {
             return nameObj.query.type;
         }
 
-        if(layer.kind == LayerKind.TEXT) {
-            return ComponentType.Text;
-        }
+        var componentType = self.defaultComponentType;
 
-        for(var i = 0;i < TypeChecks.length; i++){
-            var t = TypeChecks[i];
-            if(_containsOne(layer.name, t[0])){
-                return t[1];
+        if(layer.kind == LayerKind.TEXT) {
+            componentType = ComponentType.Text;
+        }else {
+            for(var i = 0;i < TypeChecks.length; i++){
+                var t = TypeChecks[i];
+                if(_containsOne(layer.name, t[0])){
+                    componentType = t[1];
+                    break;
+                }
             }
         }
 
-        return self.defaultComponentType;
+        if(componentType == ComponentType.Image){
+
+            if(maybeThumbnail(layer)){
+                componentType = ComponentType.VarImage;
+            } else if( _maybeVariable(layer)){
+                componentType = ComponentType.VarImage;
+            }   
+        }else if(componentType == ComponentType.Text) {
+            
+            if(_maybeVariable(layer)){
+                componentType = ComponentType.VarText;
+            }
+
+        }
+
+
+
+        return componentType;
     };
+
+    this.maybeVaribale = function(layer) {
+        return _maybeVariable(layer);
+    };
+
+    var ThumbnailSizeMinRatio = 1.0 / 15;
+    /**
+     サムネイルであるかどうかを判断する
+     基本的に一定以上の大きさの正方形の画像の場合をサムネイルと判断する
+     */
+    function maybeThumbnail(layer) {
+        var doc = layer.parent;
+
+        var layerW = getWidth(layer.bounds);
+        var layerH = getHeight(layer.bounds);
+
+        if(layerW == layerH) {
+            return layerH  > ThumbnailSizeMinRatio * doc.height;
+        }else{
+            return false;
+        }
+
+    }
+    function _maybeVariable(layer) {
+        return _containsOne(layer.name, VariableKeywords)
+    }
+
     function _containsOne(str, candidates) {
         str = str.toLowerCase();
         for(var i in candidates){
@@ -412,7 +512,13 @@ var TypeGuesser = function() {
 
 
 };
+function getWidth(bounds){
+    return bounds[2].as(g_SizeUnit) - bounds[0].as(g_SizeUnit);
+}
 
+function getHeight(bounds){
+    return bounds[3].as(g_SizeUnit) - bounds[1].as(g_SizeUnit);
+}
 
 var nameRule = new NameRule();
 var typeGuesser = new TypeGuesser();

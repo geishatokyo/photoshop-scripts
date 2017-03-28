@@ -32,7 +32,6 @@ var AvatarExporter = function(setting){
         imageExporter.dontExportTextLayer = !setting.includeTextToImage;
 
         _exportPNGs(structure);
-
         if(setting.exportStructure) {
             var jsonPath = pathSetting.exportDir + "/structure.json";
             saveToJsonFile(jsonPath, copyExcluding(structure, ["layer","ignoreLayers"]));
