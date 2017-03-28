@@ -6,9 +6,12 @@ Macbook Pro Sierra 10.12.3 + Adobe Photoshop CC
 
 ## 導入方法
 
+"""/Applications/Adobe Photoshop CC 2017/Presets/Scripts"""でこのレポジトリをチェックアウトすればOKです。
+この文章で導入方法がわかららない人は、勉強して下さい。
+
 ※エンジニアは、ちゃんとhttps://ではなくgit@のほうでcloneして下さい。
 
-### CUIでの導入と更新(推奨)
+### 導入と更新詳細
 
 
 Mac(ターミナルで)
@@ -61,13 +64,13 @@ Win(コマンドプロンプトで)
 
 Photoshopのメニューから、ファイル＞スクリプトを選ぶと、以下のコマンドが実行できます。
 
-* avatar_exporter
-* image_exporter
+* image exporter
+* ui structure_exporter
 
 
 ## 各種コマンドの説明
 
-### image_exporter.jsx
+### image exporter.jsx
 
 各画像の透明部分をトリミングした画像を出力します。
 2種類のモードで動作します。<br />
@@ -116,7 +119,7 @@ Save
 の2つの画像が保存されます。
 
 
-### avatar_exporter.jsx
+### ui structure exporter.jsx
 
 各画像を、キャンバスのサイズのまま出力します。<br />
 image_exporter.jsxと同様に、2種類の出力モードで動作します。<br />
