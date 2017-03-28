@@ -39,7 +39,7 @@ var StructureLoader = function() {
             _loadLayer(_window, l);
         }
 
-        _reposition(_window);
+        _postConstruction(_window);
 
         return _window;
 
@@ -147,23 +147,15 @@ var StructureLoader = function() {
             }
 
             // TextLayerは位置情報が微妙なので、再計算
-
+            var newHeight = obj.fontSize * 1.5;
+            var newWidth = obj.width * 2;
+            var newY = obj.y + obj.height - obj.fontSize * 0.5 - newHeight * 0.5;
+            obj.y = newY;
+            obj.height = newHeight;
+            obj.width = newWidth;
             if(obj.textAlign == "center"){
-                var newHeight = obj.fontSize * 1.5;
-                var newWidth = obj.width * 2;
-                var newY = obj.y + obj.height * 0.5 - newHeight * 0.5;
                 var newX = obj.x + obj.width * 0.5 - newWidth * 0.5;
                 obj.x = newX;
-                obj.y = newY;
-                obj.height = newHeight;
-                obj.width = newWidth;
-            }else {
-                var newHeight = obj.fontSize * 1.5;
-                var newWidth = obj.width * 2;
-                var newY = obj.y + obj.height * 0.5 - newHeight * 0.5;
-                obj.y = newY;
-                obj.height = newHeight;
-                obj.width = newWidth;
             }
 
 
@@ -292,6 +284,19 @@ var StructureLoader = function() {
     }
 
     /*
+      構造構築化の処理
+    */
+    function _postConstruction(_window) {
+        var components = [];
+        enumerateElements(_window, components);
+
+
+        findVariables(null, _window, components);
+        _reposition(_window)
+
+    }
+
+    /*
      Positionが絶対値なので、親からの相対位置に変更する
     */
     function _reposition(structure) {
@@ -321,6 +326,73 @@ var StructureLoader = function() {
             my.x = newX;
             my.y = newY;
         }   
+    }
+
+
+    /*
+    変数に当たるものを見つける
+    */
+    function findVariables(parent, component, allComponents) {
+        if(component.type == ComponentType.Text){
+            // すぐ左側にTextが存在する場合は、変数の可能性が高い
+            var lefts = _findLeftTexts(component, allComponents);
+            if(lefts.length > 0 && lefts.length % 2 == 1){ // 連続する場合、ラベル、変数が連続するとして認識する
+                component.type = ComponentType.VarText;
+            }
+        }
+        if(component.children){
+            for(var i = 0;i < component.children.length; i++){
+                findVariables(component, component.children[i], allComponents);
+            }
+        }
+        if(component.listViewItem){
+            findVariables(component, component.listViewItem, allComponents);
+        }
+
+    }
+
+    /*
+     指定したコンポーネントの左側にあるY座標がだいたい同じ位置のTextコンポーネントを取得する
+     */
+    function _findLeftTexts(comp, components){
+        var centerY = comp.y + comp.height * 0.5;
+
+        var leftComponents = [];
+        for(var i = 0;i < components.length; i++){
+            var c = components[i];
+            if( c.type != ComponentType.Text &&
+                c.type != ComponentType.VarText){
+                continue;
+            }
+            if( c.x >= comp.x){
+                continue;
+            }
+
+            var _centerY = c.y + c.height * 0.5;
+            if( Math.abs(_centerY - centerY) < 5) {
+                leftComponents.push(c);
+            }
+        }
+        /*leftComponents.sort(function(c){
+            return c.x;
+        });*/
+
+        return leftComponents;
+    }
+
+
+
+
+    function enumerateElements(component, list) {
+        list.push(component);
+        if(component.children){
+            for(var i = 0;i < component.children.length; i++){
+                enumerateElements(component.children[i], list);
+            }
+        }
+        if(component.listViewItem){
+            enumerateElements(component.listViewItem, list);
+        }
     }
 
 
@@ -425,6 +497,11 @@ var TypeGuesser = function() {
         "変数",
         "variable"
     ];
+    var VariableEndKeywords = [
+        "name",
+        "名前",
+        "名"
+    ];
 
 
     var self = this;
@@ -461,7 +538,6 @@ var TypeGuesser = function() {
                 componentType = ComponentType.VarImage;
             }   
         }else if(componentType == ComponentType.Text) {
-            
             if(_maybeVariable(layer)){
                 componentType = ComponentType.VarText;
             }
@@ -496,7 +572,18 @@ var TypeGuesser = function() {
 
     }
     function _maybeVariable(layer) {
-        return _containsOne(layer.name, VariableKeywords)
+        if(_containsOne(layer.name, VariableKeywords)){
+            return true;
+        }else {
+            var name = layer.name.toLowerCase();
+            for(var i = 0; i < VariableEndKeywords.length;i ++){
+                var keyword = VariableEndKeywords[i];
+                if(name.endsWith(keyword)){
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     function _containsOne(str, candidates) {

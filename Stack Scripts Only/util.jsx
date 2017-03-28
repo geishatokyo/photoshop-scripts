@@ -70,6 +70,11 @@ var pathSetting = new PathSetting();
 
 
 
+String.prototype.endsWith = function(word) {
+    var i = this.indexOf(word);
+    return i == this.length - word.length;
+};
+
 
 
 // -------- Scala like extentions -------------
@@ -119,6 +124,7 @@ Array.prototype.contains = function(elem) {
         return e === elem;
     }) != null;
 }
+
 
 
 

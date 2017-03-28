@@ -17,7 +17,7 @@ var g_SizeUnit = "px";
 
 
 
-var AvatarExporter = function(setting){
+var UIStructureExporter = function(setting){
 
     var exportAsPNG = undefined;
 
@@ -103,8 +103,8 @@ function showSettingDialog(func) {
 
 function onDialogClosed(ok, setting) {
     if(ok) {
-        var avatarExporter = new AvatarExporter(setting);
-        avatarExporter.export();
+        var uIStructureExporter = new UIStructureExporter(setting);
+        uIStructureExporter.export();
         alert("完了");
     }
 }
