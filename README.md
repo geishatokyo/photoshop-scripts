@@ -6,8 +6,8 @@ Macbook Pro Sierra 10.12.3 + Adobe Photoshop CC
 
 ## 導入方法
 
-"""/Applications/Adobe Photoshop CC 2017/Presets/Scripts"""でこのレポジトリをチェックアウトすればOKです。
-この文章で導入方法がわかららない人は、勉強して下さい。
+"""/Applications/Adobe Photoshop CC 2017/Presets/Scripts"""でこのレポジトリをクローンすればOKです。
+この文章で導入方法がわからない人は、勉強して下さい。
 
 ※エンジニアは、ちゃんとhttps://ではなくgit@のほうでcloneして下さい。
 
@@ -122,7 +122,7 @@ Save
 ### ui structure exporter.jsx
 
 各画像を、キャンバスのサイズのまま出力します。<br />
-image_exporter.jsxと同様に、2種類の出力モードで動作します。<br />
+image_exporter.jsxの@付きレイヤー書き出しモードで動作します、。<br />
 詳細は、image_exporterの説明を読んで下さい。<br />
 コマンドを実行したら、ダイアログが表示されるので、そこで切り替えて下さい。
 
