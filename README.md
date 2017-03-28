@@ -11,34 +11,53 @@ Macbook Pro Sierra 10.12.3 + Adobe Photoshop CC
 
 ※エンジニアは、ちゃんとhttps://ではなくgit@のほうでcloneして下さい。
 
-### 導入と更新詳細
-
+### Macでの導入と更新
 
 Mac(ターミナルで)
 
-    // 新規作成
+    $ 新規作成
     cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts"
     git clone https://github.com/geishatokyo/photoshop-scripts.git
-    // ↑のコマンドが失敗した場合は下のコマンドを実行してみて下さい。
+    # ↑のコマンドが失敗した場合は下のコマンドを実行してみて下さい。
     sudo git clone https://github.com/geishatokyo/photoshop-scripts.git
 
-    // 最新版への更新
+    # 最新版への更新
     cd "/Applications/Adobe Photoshop CC 2017/Presets/Scripts/photosho-scripts"
     git pull
     (sudo git pull)
 
 
-Win(コマンドプロンプトで)
+### Windowsでの導入と更新
 
-    // 新規作成
-    cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts"
+#### Step1 アクセス権限変更
+
+C:\program files\Adobe\Adobe Photoshop CC 2017\Presets/Scripts <br />
+のディレクトリの
+
+* 「読み取り専用」設定の解除
+* Usersに対して「書き込み」または「フルコントロール」の権限付与
+
+を行って下さい。<br />
+変更は、下のURLを参考にして下さい。 <br />
+https://www2.mouse-jp.co.jp/ssl/user_support2/sc_faq_documents.asp?FaqID=10494
+
+
+
+#### Step2 gitのクローン
+
+マシン内検索で、「コマンドプロンプト」を検索して、コマンドプロンプトを起動して下さい。
+
+Win(コマンドプロンプトで)
+    # 新規作成
+    cd "C:\program files\Adobe\Adobe Photoshop CC 2017\Presets/Scripts"
     git clone https://github.com/geishatokyo/photoshop-scripts.git
 
-    // 最新版への更新
-    cd "C:\program files\Adobe Photoshop CC 2017\Presets/Scripts/photoshop-scripts"
+    # 最新版への更新
+    cd "C:\program files\Adobe\Adobe Photoshop CC 2017\Presets/Scripts/photoshop-scripts"
     git pull
 
 (Photoshopのバージョンによってパスはかわることがあるので、パスは自分の環境で確認して下さい)
+
 
 ### SourceTreeでの導入と更新
 
@@ -53,7 +72,19 @@ Win(コマンドプロンプトで)
 更新は、「プル」ボタンを押せば出来ます。
 
 
-### gitが入っていない場合の導入、更新方法
+### cdとgitとsudoって何？
+
+cd = change directoryで、ディレクトリの移動を行っている
+git gitのコマンド。その後に色々つけることで、gitを使える
+sudo 管理者権限でコマンドを実行出来る
+
+### Gitが入っていない場合は？
+
+キーワードを書いておきます。わからないならググって下さい。日本語の導入記事が大量にあります。
+Macの場合は、「brew install」または、 「SourceTree」を入れて下さい。
+Windowsの場合は、「Tortoise git」を入れて下さい。(ちゃんと入れればコマンドプロンプトでも使えるようになっています)
+
+### gitを入れずにとりあえず使って見るには？
 
 この右側あたりにあるDownload ZIPをクリックしてzipをダウンロードしてきて、<br />
 導入方法に書かれているパスに解凍してください。<br />
@@ -64,20 +95,19 @@ Win(コマンドプロンプトで)
 
 Photoshopのメニューから、ファイル＞スクリプトを選ぶと、以下のコマンドが実行できます。
 
-* image exporter
+* avatar exporter
 * ui structure_exporter
 
 ## 詳細説明
 
-詳しい説明に関しては
-[Wiki(https://github.com/geishatokyo/photoshop-scripts/wiki)に記載があります。使用するスクリプトに関する説明を確認しておいて下さい。
+詳しい説明に関しては[Wiki](https://github.com/geishatokyo/photoshop-scripts/wiki)に記載があります。使用するスクリプトに関する説明を確認しておいて下さい。
 
 
-## 各種コマンドの説明
+## 各種コマンドの簡単な説明
 
-### image exporter.jsx
+### avatar exporter.jsx
 
-各画像の透明部分をトリミングした画像を出力します。
+キャンパスの大きさのまま、Layer毎に個別画像として保存します。
 2種類のモードで動作します。<br />
 コマンドを実行したら、ダイアログが表示されるので、そこで切り替えて下さい。
 
@@ -126,10 +156,8 @@ Save
 
 ### ui structure exporter.jsx
 
-各画像を、キャンバスのサイズのまま出力します。<br />
-image_exporter.jsxの@付きレイヤー書き出しモードで動作します、。<br />
-詳細は、image_exporterの説明を読んで下さい。<br />
-コマンドを実行したら、ダイアログが表示されるので、そこで切り替えて下さい。
+各画像を、トリミングして画像保存します。また、UIの構造情報も同時に出力します。<br />
+avatar exporter.jsxの@付きレイヤー書き出しモードで動作します、。<br />
 
 
 ## 謝辞
