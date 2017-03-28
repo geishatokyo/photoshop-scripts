@@ -22,7 +22,7 @@ var StructureLoader = function() {
 
     this.load = function(e) {
         return _loadRoot(activeDocument);
-    }
+    };
 
     function _loadRoot(doc) {
 
@@ -396,7 +396,7 @@ var StructureLoader = function() {
     }
 
 
-}
+};
 
 
 
@@ -452,7 +452,7 @@ var NameRule = function() {
         parsedObject.layerName = layerName.substring(0,i);
 
         return parsedObject;
-    }
+    };
 };
 
 var TypeGuesser = function() {

@@ -62,7 +62,7 @@ var SettingDialog = function(title, settingFile) {
 
     var okCancelButtonAreAdded = false;
     /*
-     OK,Cancelボタンを追加画面に追加する
+     OK,Cancelボタンを画面に追加する
     */
     function _addOkCancelButton() {
         if(okCancelButtonAreAdded) return;
@@ -119,7 +119,7 @@ var SettingDialog = function(title, settingFile) {
         input.size = [LineWidth, LineHeight];
         settingUpdator.register(name, input, value);
 
-    }
+    };
 
     this.addLabel = function(label) {
         var label = currentPanel.add("statictext", undefined, label);
@@ -197,7 +197,7 @@ var SettingDialog = function(title, settingFile) {
         initScopeFunc();
         currentPanel = parent;
         return group;
-    }
+    };
 
 
     // ----- Display ------
