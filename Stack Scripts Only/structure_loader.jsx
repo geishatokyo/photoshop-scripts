@@ -401,15 +401,30 @@ var StructureLoader = function() {
 
 
 var NameRule = function() {
+
+
+    /*
+
+    
+      @return such {
+        fullname: "レイヤー@layer?hoge=fuga",
+        name: "layer",
+        layerName: "レイヤー",
+        query : {
+          hoge: "fuga"
+        }
+      }
+    */
     this.parseName = function(layerName) {
         if(layerName.name) {
             layerName = layerName.name;
         }
+        var parsedObject = {
+            fullname: layerName
+        };
 
+        // クエリのパース
         var i = layerName.indexOf("?");
-
-        var parsedObject = {};
-
         if(i >= 0) {
             var queryStr = layerName.substring(i + 1);
             layerName = layerName.substring(0,i);
@@ -427,12 +442,14 @@ var NameRule = function() {
         }
 
 
+        // 名前のパース
         i = layerName.indexOf("@");
         if(i < 0) {
             return null;
         }
 
         parsedObject.name = layerName.substring(i + 1); 
+        parsedObject.layerName = layerName.substring(0,i);
 
         return parsedObject;
     }
@@ -467,6 +484,8 @@ var TypeGuesser = function() {
     ];
     var InputTextNames = [
         "input",
+        "input_text",
+        "inputtext",
         "textarea",
         "text_area",
         "入力"
@@ -475,7 +494,8 @@ var TypeGuesser = function() {
     var ListViewNames = [
         "list",
         "list_view",
-        "リスト"
+        "リスト",
+        "listview"
     ];
     var CheckBoxNames = [
         "checkbox",
@@ -500,7 +520,9 @@ var TypeGuesser = function() {
     var VariableEndKeywords = [
         "name",
         "名前",
-        "名"
+        "名",
+        "thumb",
+        "thumbnail"
     ];
 
 
@@ -534,14 +556,13 @@ var TypeGuesser = function() {
 
             if(maybeThumbnail(layer)){
                 componentType = ComponentType.VarImage;
-            } else if( _maybeVariable(layer)){
+            } else if( _maybeVariable(nameObj)){
                 componentType = ComponentType.VarImage;
             }   
         }else if(componentType == ComponentType.Text) {
-            if(_maybeVariable(layer)){
+            if(_maybeVariable(nameObj)){
                 componentType = ComponentType.VarText;
             }
-
         }
 
 
@@ -550,10 +571,13 @@ var TypeGuesser = function() {
     };
 
     this.maybeVaribale = function(layer) {
-        return _maybeVariable(layer);
+        var nameObj = nameRule.parseName(layer.name);
+        if(nameObj == null) return false;
+        return _maybeVariable(nameObj);
     };
 
     var ThumbnailSizeMinRatio = 1.0 / 15;
+
     /**
      サムネイルであるかどうかを判断する
      基本的に一定以上の大きさの正方形の画像の場合をサムネイルと判断する
@@ -571,14 +595,19 @@ var TypeGuesser = function() {
         }
 
     }
-    function _maybeVariable(layer) {
-        if(_containsOne(layer.name, VariableKeywords)){
+    function _maybeVariable(nameObject) {
+        if(!nameObject) return false;
+        if(_containsOne(nameObject.fullname, VariableKeywords)){
             return true;
         }else {
-            var name = layer.name.toLowerCase();
+            var name = nameObject.name.toLowerCase();
+            var layerName = nameObject.layerName.toLowerCase();
             for(var i = 0; i < VariableEndKeywords.length;i ++){
                 var keyword = VariableEndKeywords[i];
                 if(name.endsWith(keyword)){
+                    return true;
+                }
+                if(layerName.endsWith(keyword)){
                     return true;
                 }
             }

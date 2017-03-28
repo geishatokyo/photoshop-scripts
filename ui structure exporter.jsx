@@ -104,15 +104,19 @@ function showSettingDialog(func) {
 function onDialogClosed(ok, setting) {
     if(ok) {
         var uIStructureExporter = new UIStructureExporter(setting);
-        uIStructureExporter.export();
-        alert("完了");
+        try{
+            uIStructureExporter.export();
+            alert("完了");
+        }catch(e){
+            alert("生成失敗:" + e);
+            throw e;
+        }
     }
 }
 
 
 function main() {
     showSettingDialog();
-
 }
 
 

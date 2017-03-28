@@ -67,6 +67,11 @@ Photoshopのメニューから、ファイル＞スクリプトを選ぶと、�
 * image exporter
 * ui structure_exporter
 
+## 詳細説明
+
+詳しい説明に関しては
+[Wiki(https://github.com/geishatokyo/photoshop-scripts/wiki)に記載があります。使用するスクリプトに関する説明を確認しておいて下さい。
+
 
 ## 各種コマンドの説明
 
