@@ -1,4 +1,4 @@
-
+﻿
 
 var ComponentType = {
     Panel : "Panel",
@@ -72,6 +72,7 @@ var StructureLoader = function() {
 
             switch(componentType) {
                 case ComponentType.Text:
+                case ComponentType.VarText:
                     _setTextProps(obj, layer);
                 break;
                 case ComponentType.ListView:
@@ -90,6 +91,7 @@ var StructureLoader = function() {
                 case ComponentType.Button:
                 case ComponentType.Image:
                 case ComponentType.InputText:
+                case ComponentType.VarImage:
                     _findTextLayers(obj, layer);
                 break;
                 case ComponentType.None:
@@ -150,13 +152,13 @@ var StructureLoader = function() {
             var newHeight = obj.fontSize * 1.5;
             var newWidth = obj.width * 2;
             var newY = obj.y + obj.height - obj.fontSize * 0.5 - newHeight * 0.5;
-            obj.y = newY;
-            obj.height = newHeight;
-            obj.width = newWidth;
             if(obj.textAlign == "center"){
                 var newX = obj.x + obj.width * 0.5 - newWidth * 0.5;
                 obj.x = newX;
             }
+            obj.y = newY;
+            obj.height = newHeight;
+            obj.width = newWidth;
 
 
         }else if(layer.typename == "LayerSet"){

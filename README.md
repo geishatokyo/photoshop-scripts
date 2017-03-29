@@ -48,10 +48,11 @@ https://www2.mouse-jp.co.jp/ssl/user_support2/sc_faq_documents.asp?FaqID=10494
 マシン内検索で、「コマンドプロンプト」を検索して、コマンドプロンプトを起動して下さい。
 
 Win(コマンドプロンプトで)
+
     # 新規作成
     cd "C:\program files\Adobe\Adobe Photoshop CC 2017\Presets/Scripts"
     git clone https://github.com/geishatokyo/photoshop-scripts.git
-
+    
     # 最新版への更新
     cd "C:\program files\Adobe\Adobe Photoshop CC 2017\Presets/Scripts/photoshop-scripts"
     git pull

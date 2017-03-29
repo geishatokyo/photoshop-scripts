@@ -1,4 +1,4 @@
-
+﻿
 
 /*
 設定ダイアログの簡易生成クラス
@@ -35,7 +35,7 @@ var SettingDialog = function(title, settingFile) {
     // 保存された設定ファイルを読み込む
     var setting = null;
     if(!settingFile) {
-        settingFile = new File(pathSetting.exportDir + "/settings.photoshoptool.json")
+        settingFile = new File(pathSetting.exportDir + "/settings.photoshoptool.json");
     }else if(typeof settingFile == "string") {
         settingFile = new File(settingFile);
     }
@@ -43,7 +43,7 @@ var SettingDialog = function(title, settingFile) {
         setting = loadFromJsonFile(settingFile);
     } else {
         setting = settingFile;
-        settingFile = new File(pathSetting.exportDir + "/settings.photoshoptool.json")
+        settingFile = new File(pathSetting.exportDir + "/settings.photoshoptool.json");
     }
 
 
