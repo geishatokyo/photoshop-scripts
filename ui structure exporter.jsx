@@ -19,15 +19,9 @@ var g_SizeUnit = "px";
 
 var UIStructureExporter = function(setting){
 
-    var exportAsPNG = undefined;
 
     this.export = function() {
         var structure = structureLoader.load();
-        if(setting.exportImage) {
-            exportAsPNG = imageExporter.exportAsPNG;
-        }else{
-            exportAsPNG = imageExporter.getImagePath;
-        }
 
         imageExporter.dontExportTextLayer = !setting.includeTextToImage;
 
@@ -38,6 +32,48 @@ var UIStructureExporter = function(setting){
         }
 
     }
+    function _getExportFunction(node) {
+        if(setting.exportImage){
+            if(!setting.exportOnlySelectedLayers){
+                return imageExporter.exportAsPNG;
+            }else{
+                if(_isSelectedLayer(node.layer)){
+                    return imageExporter.exportAsPNG;
+                }else{
+                    return imageExporter.getImagePath;
+                }
+            }
+        } else {
+            return imageExporter.getImagePath;
+        }
+    }
+    function _isSelectedLayer(layer) {
+        var selected = app.activeDocument.activeLayer;
+        return _foreachLayer(selected, function(l) {
+            if(l == layer){
+                return true;
+            }else {
+                return false;
+            }
+        });
+    }
+
+    function _foreachLayer(layer, func) {
+        var b = func(layer);
+        if(b){
+            return true;
+        }
+        if(layer.typename == "LayerSet"){
+            for(var i = 0;i < layer.length;i ++){
+                var l = layer[i];
+                var b = _foreachLayer(l, func);
+                if(b){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 
     function _exportPNGs(node) {
@@ -45,7 +81,8 @@ var UIStructureExporter = function(setting){
         switch(node.type) {
             case ComponentType.Image:
             case ComponentType.Button:
-                var imagePath = exportAsPNG(node.name, node.layer, node.ignoreLayers);
+                var exportFunc = _getExportFunction(node);
+                var imagePath = exportFunc(node.name, node.layer, node.ignoreLayers);
                 if(imagePath != null) node.image = imagePath.name;
             break;
             case ComponentType.Panel:
@@ -58,7 +95,8 @@ var UIStructureExporter = function(setting){
             case ComponentType.ListView:
                 // ListViewの背景を出力
                 // ListViewItemの要素は描画しない
-                var imagePath = exportAsPNG(node.name, node.layer, node.ignoreLayers);
+                var exportFunc = _getExportFunction(node);
+                var imagePath = exportFunc(node.name, node.layer, node.ignoreLayers);
                 if(imagePath != null) node.image = imagePath.name;
 
                 // ListViewItemの要素の描画を行う
@@ -71,7 +109,8 @@ var UIStructureExporter = function(setting){
 
             break;
             case ComponentType.ListViewItem:
-                var imagePath = exportAsPNG(node.name, node.layer, node.ignoreLayers);
+                var exportFunc = _getExportFunction(node);
+                var imagePath = exportFunc(node.name, node.layer, node.ignoreLayers);
                 if(imagePath != null) node.image = imagePath.name;
 
                 for(var i = 0; i < node.children.length; i++) {
@@ -90,12 +129,14 @@ var UIStructureExporter = function(setting){
 
 function showSettingDialog(func) {
     var dialog = new SettingDialog("UI配置ファイル書き出し");
-
     dialog.addCheckbox("exportImage","画像を書き出す",true);
     dialog.addCheckbox("exportStructure","UI配置ファイルを書き出す",true);
-
-    dialog.addLabel("詳細設定");
-    dialog.addCheckbox("includeTextToImage","TextLayerも画像に含める", false)
+    dialog.withPanel("詳細設定", function(){
+        dialog.addCheckbox("includeTextToImage","TextLayerも画像に含める", false);
+    });
+    dialog.withPanel("実行モード",function(){
+        dialog.addCheckbox("exportOnlySelectedLayers","アクティブレイヤーだけを出力する", false);
+    });
 
     dialog.show(onDialogClosed);
 
@@ -118,6 +159,8 @@ function onDialogClosed(ok, setting) {
 function main() {
     showSettingDialog();
 }
+
+
 
 
 main();
