@@ -21,10 +21,13 @@ var UIStructureExporter = function(setting){
 
 
     this.export = function() {
+        log("Start parse structure");
         var structure = structureLoader.load();
+        log("Validate names");
+        layerNameValidator.fixAll(structure);
 
         imageExporter.dontExportTextLayer = !setting.includeTextToImage;
-
+        log("Start exporting to png");
         _exportPNGs(structure);
         if(setting.exportStructure) {
             var jsonPath = pathSetting.exportDir + "/structure.json";
@@ -150,6 +153,7 @@ function onDialogClosed(ok, setting) {
             alert("完了");
         }catch(e){
             alert("生成失敗:" + e);
+            log("Error " + e);
             throw e;
         }
     }
@@ -157,6 +161,7 @@ function onDialogClosed(ok, setting) {
 
 
 function main() {
+    clearLog();
     showSettingDialog();
 }
 

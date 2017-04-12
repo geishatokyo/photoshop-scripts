@@ -125,6 +125,46 @@ Array.prototype.contains = function(elem) {
     }) != null;
 }
 
+Array.prototype.groupBy = function(toKeyFunc) {
+    var grouped = {};
+    for(var i = 0;i < this.length;i ++){
+        var e = this[i];
+        var key = toKeyFunc(e);
+        if (grouped[key]) {
+            grouped[key].push(e);
+        } else {
+            var list = [];
+            list.push(e);
+            grouped[key] = list;
+        }
+    }
+    return grouped;
+};
+
+function clearLog()
+{
+    if(!pathSetting.exportDir){
+        return;
+    }
+    var f = new File(pathSetting.exportDir + "/log.txt");
+    f.encoding = "UTF-8";
+    f.open("w");
+    f.write("Start logging -- " + new Date() + "\n");
+    f.close();
+}
+
+
+function log(log){
+    if(!pathSetting.exportDir){
+        return;
+    }
+    var f = new File(pathSetting.exportDir + "/log.txt");
+    f.encoding = "UTF-8";
+    f.open("a");
+    f.write(log + "\n");
+    f.close();
+}
+
 
 
 

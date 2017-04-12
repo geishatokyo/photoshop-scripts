@@ -15,6 +15,7 @@ function loadFromJsonFile(f) {
     if(!f.exists) {
         return null;
     }
+    f.encoding = "UTF-8";
 	f.open("r");
 	var str = f.read();
 	f.close();
@@ -29,6 +30,7 @@ function saveToJsonFile(f, obj) {
 	}
 
 	var str = JSON.stringify(obj);
+    f.encoding = "UTF-8";
 	f.open("w");
 	f.write(str);
 	f.close();

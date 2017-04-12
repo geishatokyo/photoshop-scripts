@@ -47,7 +47,6 @@ var StructureLoader = function() {
 
     function _loadLayer(parent, layer) {
         if( !layer.visible) return null;
-
         var nameObj = nameRule.parseName(layer.name);
         if(nameObj == null) {
             if( layer.typename == "LayerSet"){
@@ -69,7 +68,6 @@ var StructureLoader = function() {
                 layer : layer
             };
             _setCommonProps(obj, layer);
-
             switch(componentType) {
                 case ComponentType.Text:
                 case ComponentType.VarText:
@@ -289,8 +287,7 @@ var StructureLoader = function() {
       構造構築化の処理
     */
     function _postConstruction(_window) {
-        var components = [];
-        enumerateElements(_window, components);
+        var components = componentUtil.toList(_window);
 
 
         findVariables(null, _window, components);
@@ -380,21 +377,6 @@ var StructureLoader = function() {
         });*/
 
         return leftComponents;
-    }
-
-
-
-
-    function enumerateElements(component, list) {
-        list.push(component);
-        if(component.children){
-            for(var i = 0;i < component.children.length; i++){
-                enumerateElements(component.children[i], list);
-            }
-        }
-        if(component.listViewItem){
-            enumerateElements(component.listViewItem, list);
-        }
     }
 
 
@@ -630,6 +612,99 @@ var TypeGuesser = function() {
 
 
 };
+
+var LayerNameValidator = function() {
+
+    var self = this;
+
+    self.fixAll = function(_window) {
+        var components = componentUtil.toList(_window);
+        _fixDuplicateNames(components);
+        _fixSnakeCaseNames(components);
+    };
+
+    self.fixDuplicateNames = function(_window) {
+        var components = componentUtil.toList(_window);
+        _fixDuplicateNames(components);
+    };
+
+    self.fixSnakeCaseNames = function(_window) {
+        var components = componentUtil.toList(_window);
+        _fixSnakeCaseNames(components);
+    };
+
+    function _fixDuplicateNames(components) {
+        log("Fix duplicate names");
+        var groupedByName = components.groupBy(function(e){
+            return e.name;
+        });
+
+        for(var key in groupedByName){
+            var l = groupedByName[key];
+            if(l.length >= 2){
+                log("Same name layer found! " + key);
+                for(var i = 0;i < l.length;i++){
+                    var e = l[i];
+                    e.name = e.name + (i + 1);
+                }
+            }
+        }
+    }
+
+    function _fixSnakeCaseNames(components) {
+        log("Fix snake case names");
+        for(var i = 0;i < components.length; i++){
+            var c = components[i];
+            if(c.name){
+                c.name = _snakeToCamel(c.name);
+            }
+        }
+
+    }
+    function _snakeToCamel(str) {
+        var n = "";
+        for(var i = 0;i < str.length; i++){
+            var c = str.charAt(i);
+            if( c == "_"){
+                if( i + 1 < str.length){
+                    n += str.charAt(i + 1).toUpperCase();
+                    i++;
+                }
+            } else {
+                n += c;
+            }
+        }
+        if(n !== str){
+            log("Snake case found:" + str);
+        }
+        return n;
+    }
+
+
+};
+
+var ComponentUtil = function()
+{
+
+    this.toList = function(component){
+        var list = [];
+        enumerateElements(component, list);
+        return list;
+    };
+
+    function enumerateElements(component, list) {
+        list.push(component);
+        if(component.children){
+            for(var i = 0;i < component.children.length; i++){
+                enumerateElements(component.children[i], list);
+            }
+        }
+        if(component.listViewItem){
+            enumerateElements(component.listViewItem, list);
+        }
+    }
+}
+
 function getWidth(bounds){
     return bounds[2].as(g_SizeUnit) - bounds[0].as(g_SizeUnit);
 }
@@ -638,7 +713,12 @@ function getHeight(bounds){
     return bounds[3].as(g_SizeUnit) - bounds[1].as(g_SizeUnit);
 }
 
+var componentUtil = new ComponentUtil();
 var nameRule = new NameRule();
 var typeGuesser = new TypeGuesser();
 var structureLoader = new StructureLoader();
+var layerNameValidator = new LayerNameValidator();
+
+
+
 
