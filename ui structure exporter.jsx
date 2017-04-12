@@ -27,9 +27,10 @@ var UIStructureExporter = function(setting){
         layerNameValidator.fixAll(structure);
 
         imageExporter.dontExportTextLayer = !setting.includeTextToImage;
-        log("Start exporting to png");
+        log("Start exporting pngs");
         _exportPNGs(structure);
         if(setting.exportStructure) {
+            log("Start exporting structure.json");
             var jsonPath = pathSetting.exportDir + "/structure.json";
             saveToJsonFile(jsonPath, copyExcluding(structure, ["layer","ignoreLayers"]));
         }
@@ -123,7 +124,7 @@ var UIStructureExporter = function(setting){
 
             break;
             default:
-
+                
             break;
         }
     };
@@ -151,6 +152,7 @@ function onDialogClosed(ok, setting) {
         try{
             uIStructureExporter.export();
             alert("完了");
+            log("Success");
         }catch(e){
             alert("生成失敗:" + e);
             log("Error " + e);
