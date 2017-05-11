@@ -128,6 +128,51 @@ var StructureLoader = function() {
         return obj;
     }
 
+    function getCorrectFontSize(textItem){
+        var domTextSize = textItem.size;  
+        var amTextSize = getTextSize();  
+        alert("DOM text size = " + domTextSize +"\rAction Manager text size = "+amTextSize);  
+    }
+    /**
+     * textItem.sizeで取れる値は初期設定値で、
+     * LayerをScaleした場合、その情報が反映されていない。
+     * そのため、正しい値を取得するにはActionReferenceを使用する必要がある
+     */
+    function getFontSize(layer){
+        
+        selectLayer(layer);
+        // read font size
+        var ref = new ActionReference();  
+        ref.putEnumerated( charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") );   
+        var desc = executeActionGet(ref).getObjectValue(stringIDToTypeID('textKey'));  
+        var textSize =  desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).getObjectValue(stringIDToTypeID('textStyle')).getDouble (stringIDToTypeID('size'));  
+        if (desc.hasKey(stringIDToTypeID('transform'))) {  
+            var mFactor = desc.getObjectValue(stringIDToTypeID('transform')).getUnitDoubleValue (stringIDToTypeID("yy") );  
+            textSize = (textSize* mFactor).toFixed(2);  
+        }  
+        return textSize;
+    }
+    /**
+     * Layer選択をする
+     */
+    function selectLayer(layer){
+        
+        var idslct = charIDToTypeID( "slct" );
+        var desc = new ActionDescriptor();
+        var idnull = charIDToTypeID( "null" );
+        var ref = new ActionReference();
+        var idLyr = charIDToTypeID( "Lyr " );
+        ref.putName( idLyr, layer.name ); // Pass layer name
+        desc.putReference( idnull, ref );
+        var idMkVs = charIDToTypeID( "MkVs" );
+        desc.putBoolean( idMkVs, false );
+        var idLyrI = charIDToTypeID( "LyrI" );
+        var list = new ActionList();
+        list.putInteger( layer.id );
+        desc.putList( idLyrI, list ); // Pass layer id
+        executeAction( idslct, desc, DialogModes.NO );
+    }
+
     /**
       Textに関する要素を設定する
     */
@@ -137,7 +182,7 @@ var StructureLoader = function() {
             var textItem = layer.textItem;
 
             obj.text = textItem.contents.replace("\r","\n");
-            obj.fontSize = textItem.size.as("pt");
+            obj.fontSize = getFontSize(layer);
             obj.fontColor = textItem.color.rgb.hexValue;
             try{
                 // 一度でもFontを設定した場合、ちゃんと取得出来る
@@ -146,8 +191,6 @@ var StructureLoader = function() {
                 // Fontの設定をしたことが無い場合例外が出るため、デフォルトのフォントを設定
                 obj.fontName = "KozGoPr6N-Regular";
             }
-
-            log(textItem.contents + " :: " + textItem.size + " - " + textItem.size.as("pt"));
 
             obj.layer = layer;
 
