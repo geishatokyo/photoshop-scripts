@@ -140,6 +140,14 @@ var StructureLoader = function() {
             obj.text = textItem.contents.replace("\r","\n");
             obj.fontSize = textItem.size.as(g_SizeUnit);
             obj.fontColor = textItem.color.rgb.hexValue;
+            try{
+                // 一度でもFontを設定した場合、ちゃんと取得出来る
+                obj.fontName = textItem.font;
+            }catch(e){
+                // Fontの設定をしたことが無い場合例外が出るため、デフォルトのフォントを設定
+                obj.fontName = "KozGoPr6N-Regular";
+            }
+
             obj.layer = layer;
 
             if(isButtonText){
