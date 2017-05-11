@@ -82,7 +82,6 @@ var StructureLoader = function() {
                 case ComponentType.ListViewItem:
                 case ComponentType.Panel:
                     obj.children = [];
-                    log("Check " + layer.name);
                     for(var i = 0;i < layer.layers.length;i++) {
                         var l = layer.layers[i];
                         _loadLayer(obj, l);
@@ -97,11 +96,10 @@ var StructureLoader = function() {
                 break;
                 case ComponentType.None:
                     return;
-                break;
                 default:
                 break;
             }
-
+            log("add " + obj.name + " to " + parent.name);
             parent.children.push(obj);
 
         }
@@ -251,6 +249,9 @@ var StructureLoader = function() {
 
         if(layer.typename == "LayerSet"){
             var children = [];
+            if(obj.children) {
+                children = obj.children;
+            }
             for(var i = 0;i < layer.layers.length; i++){
                 var l = layer.layers[i];
                 _addTextLayers(obj, children, l);
@@ -473,7 +474,7 @@ var TypeGuesser = function() {
     var PanelNames = [
         "panel",
         "パネル",
-        "Group"
+        "group"
     ];
     var ListViewItemNames = [
         "listitem",
@@ -546,7 +547,11 @@ var TypeGuesser = function() {
         }else {
             for(var i = 0;i < TypeChecks.length; i++){
                 var t = TypeChecks[i];
-                if(_containsOne(layer.name, t[0])){
+                if(_endsWithOne(nameObj.name, t[0])){
+                    componentType = t[1];
+                    break;
+                }
+                if(_endsWithOne(nameObj.layerName, t[0])){
                     componentType = t[1];
                     break;
                 }
@@ -554,7 +559,12 @@ var TypeGuesser = function() {
             if (layer.typename == "LayerSet") {
                 for(var i = 0; i < LayerSetTypeChecks.length; i++){
                     var t = LayerSetTypeChecks[i];
-                    if (_containsOne(layer.name, t[0])) {
+
+                    if(_endsWithOne(nameObj.name, t[0])){
+                        componentType = t[1];
+                        break;
+                    }
+                    if(_endsWithOne(nameObj.layerName, t[0])){
                         componentType = t[1];
                         break;
                     }
@@ -630,6 +640,16 @@ var TypeGuesser = function() {
         for(var i in candidates){
             var cand = candidates[i];
             if(str.indexOf(cand) >= 0){
+                return true;
+            }
+        }
+        return false;
+    }
+    function _endsWithOne(str, candidates) {
+        str = str.toLowerCase();
+        for(var i in candidates){
+            var cand = candidates[i];
+            if( str.endsWith(cand)){
                 return true;
             }
         }
