@@ -45,11 +45,13 @@ var StructureLoader = function() {
 
     }
 
+
     function _loadLayer(parent, layer) {
         if( !layer.visible) return null;
         var nameObj = nameRule.parseName(layer.name);
         if(nameObj == null) {
             if( layer.typename == "LayerSet"){
+                log("Check nest for " + layer.name);
                 for(var i = 0;i < layer.layers.length;i++) {
                     var l = layer.layers[i];
                     _loadLayer(parent, l);
@@ -80,6 +82,7 @@ var StructureLoader = function() {
                 case ComponentType.ListViewItem:
                 case ComponentType.Panel:
                     obj.children = [];
+                    log("Check " + layer.name);
                     for(var i = 0;i < layer.layers.length;i++) {
                         var l = layer.layers[i];
                         _loadLayer(obj, l);
@@ -138,7 +141,7 @@ var StructureLoader = function() {
             var textItem = layer.textItem;
 
             obj.text = textItem.contents.replace("\r","\n");
-            obj.fontSize = textItem.size.as(g_SizeUnit);
+            obj.fontSize = textItem.size.as("pt");
             obj.fontColor = textItem.color.rgb.hexValue;
             try{
                 // 一度でもFontを設定した場合、ちゃんと取得出来る
@@ -248,39 +251,9 @@ var StructureLoader = function() {
 
         if(layer.typename == "LayerSet"){
             var children = [];
-            var variableIndex = 0;
-            for(var i = 0; i < layer.layers.length; i++) {
+            for(var i = 0;i < layer.layers.length; i++){
                 var l = layer.layers[i];
-                if(l.typename == "ArtLayer" && l.kind == LayerKind.TEXT){
-
-                    var n = nameRule.parseName(l.name);
-
-                    var name = null;
-                    if( n != null){
-                        name = n.name;
-                    }else {
-                        // 名前が設定されていない場合は、親の名前＋Label＋連番
-                        name = obj.name + "Label";
-                        if(variableIndex > 0){
-                            name += variableIndex;
-                        }
-                        variableIndex += 1;
-                    }
-
-                    var componentType = ComponentType.Text;
-                    if(typeGuesser.maybeVaribale(l)){
-                        componentType = ComponentType.VarText;
-                    }
-
-                    var label = {
-                        type: componentType,
-                        name: name,
-                        layer: l
-                    };
-                    _setCommonProps(label, l);
-                    _setTextProps(label, l, obj.type == ComponentType.Button);
-                    children.push(label);
-                }
+                _addTextLayers(obj, children, l);
             }
 
             if(children.length > 0){
@@ -288,6 +261,39 @@ var StructureLoader = function() {
             }
         }else if(layer.typename == "ArtLayer" && layer.kind == LayerKind.TEXT){
             _setTextProps(obj,layer);
+        }
+    }
+    function _addTextLayers(obj, list, layer) {
+
+        if(layer.typename == "ArtLayer" && layer.kind == LayerKind.TEXT){
+            var n = nameRule.parseName(layer.name);
+            var name = null;
+            if( n != null){
+                name = n.name;
+            }else {
+                // 名前が設定されていない場合は、親の名前＋Label＋連番
+                name = obj.name + "Label" + (list.length + 1);
+            }
+
+            var componentType = ComponentType.Text;
+            if(typeGuesser.maybeVaribale(layer)){
+                componentType = ComponentType.VarText;
+            }
+
+            var label = {
+                type: componentType,
+                name: name,
+                layer: layer
+            };
+            _setCommonProps(label, layer);
+            _setTextProps(label, layer, obj.type == ComponentType.Button);
+            list.push(label);
+        } else if(layer.typename == "LayerSet") {
+            if(layer.name.indexOf("@") >= 0) return;
+            for(var i = 0;i < layer.layers.length; i++){
+                var l = layer.layers[i];
+                _addTextLayers(obj, list, l);
+            }
         }
     }
 
@@ -466,7 +472,8 @@ var TypeGuesser = function() {
 
     var PanelNames = [
         "panel",
-        "パネル"
+        "パネル",
+        "Group"
     ];
     var ListViewItemNames = [
         "listitem",
@@ -498,11 +505,13 @@ var TypeGuesser = function() {
         [VarTextNames, ComponentType.VarText],
         [VarImageNames, ComponentType.VarImage],
         [ButtonNames, ComponentType.Button],
-        [PanelNames, ComponentType.Panel],
         [InputTextNames, ComponentType.InputText],
         [ListViewItemNames, ComponentType.ListViewItem],
         [ListViewNames, ComponentType.ListView],
         [CheckBoxNames, ComponentType.CheckBox]
+    ];
+    var LayerSetTypeChecks = [
+        [PanelNames, ComponentType.Panel]
     ];
 
     var VariableKeywords = [
@@ -540,6 +549,15 @@ var TypeGuesser = function() {
                 if(_containsOne(layer.name, t[0])){
                     componentType = t[1];
                     break;
+                }
+            }
+            if (layer.typename == "LayerSet") {
+                for(var i = 0; i < LayerSetTypeChecks.length; i++){
+                    var t = LayerSetTypeChecks[i];
+                    if (_containsOne(layer.name, t[0])) {
+                        componentType = t[1];
+                        break;
+                    }
                 }
             }
         }
@@ -616,6 +634,22 @@ var TypeGuesser = function() {
             }
         }
         return false;
+    }
+
+    function hasAtMarkChild(layer) {
+        if(layer.name.indexOf("@") >= 0){
+            return true;
+        }
+        if(layer.typename == "LayerSet"){
+            for(var i = 0;i < layer.layers.length; i++){
+                if(hasAtMarkChild(layer.layers[i])){
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return false;
+        }
     }
 
 
