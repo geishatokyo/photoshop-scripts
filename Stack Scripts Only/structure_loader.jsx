@@ -147,6 +147,8 @@ var StructureLoader = function() {
                 obj.fontName = "KozGoPr6N-Regular";
             }
 
+            log(textItem.contents + " :: " + textItem.size + " - " + textItem.size.as("pt"));
+
             obj.layer = layer;
 
             if(isButtonText){
@@ -265,6 +267,10 @@ var StructureLoader = function() {
     function _addTextLayers(obj, list, layer) {
 
         if(layer.typename == "ArtLayer" && layer.kind == LayerKind.TEXT){
+            list.find(function(e){
+                return e.name == name;
+            })
+
             var n = nameRule.parseName(layer.name);
             var name = null;
             if( n != null){
@@ -272,6 +278,13 @@ var StructureLoader = function() {
             }else {
                 // 名前が設定されていない場合は、親の名前＋Label＋連番
                 name = obj.name + "Label" + (list.length + 1);
+            }
+            // 同じ名前の要素が含まれていないかチェック
+            var ele = list.find(function(e){
+                return e.name == name;
+            });
+            if(ele != null){
+                return;
             }
 
             var componentType = ComponentType.Text;
