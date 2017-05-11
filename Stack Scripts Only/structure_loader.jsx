@@ -51,7 +51,6 @@ var StructureLoader = function() {
         var nameObj = nameRule.parseName(layer.name);
         if(nameObj == null) {
             if( layer.typename == "LayerSet"){
-                log("Check nest for " + layer.name);
                 for(var i = 0;i < layer.layers.length;i++) {
                     var l = layer.layers[i];
                     _loadLayer(parent, l);
@@ -99,7 +98,6 @@ var StructureLoader = function() {
                 default:
                 break;
             }
-            log("add " + obj.name + " to " + parent.name);
             parent.children.push(obj);
 
         }
