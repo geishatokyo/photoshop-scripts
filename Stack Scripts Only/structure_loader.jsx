@@ -107,7 +107,7 @@ var StructureLoader = function() {
       共通の要素を設定する
     */
     function _setCommonProps(obj, layer){
-
+        var disabled = disableDropShadow(layer);
         // name
         var nameObj = nameRule.parseName(layer.name);
         if(nameObj != null){
@@ -120,12 +120,118 @@ var StructureLoader = function() {
         var top = bounds[1].as(g_SizeUnit);
         var right = bounds[2].as(g_SizeUnit);
         var bottom = bounds[3].as(g_SizeUnit);
+        log(layer.name + " : " + bounds);
         obj.x = left;
         obj.y = top;
         obj.width = right - left;
         obj.height = bottom - top;
 
+        if(disabled)
+        {
+            setDropShadow(true);
+        }
+
         return obj;
+    }
+    function disableDropShadow(layer){
+        selectLayer(layer);
+        if(isDropShadowEnabled()) {
+            log(layer.name + " has drop shadow");
+            setDropShadow(false);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function setDropShadow(enabled) {
+        var idType = "";
+        if(enabled){
+            idType = "Shw ";
+        } else {
+            idType = "Hd  ";
+        }
+        var idHd = charIDToTypeID( idType );
+        var desc1614 = new ActionDescriptor();
+        var idnull = charIDToTypeID( "null" );
+        var list405 = new ActionList();
+        var ref503 = new ActionReference();
+        var idDrSh = charIDToTypeID( "DrSh" );
+        ref503.putIndex( idDrSh, 1 );
+        var idLyr = charIDToTypeID( "Lyr " );
+        var idOrdn = charIDToTypeID( "Ordn" );
+        var idTrgt = charIDToTypeID( "Trgt" );
+        ref503.putEnumerated( idLyr, idOrdn, idTrgt );
+        list405.putReference( ref503 );
+        desc1614.putList( idnull, list405 );
+        executeAction( idHd, desc1614, DialogModes.NO );
+    }
+        /*
+        今後のためにログ残し
+
+        TypeID : CharID
+
+        in Lyayer
+1315774496:Nm  
+1131180576:Clr 
+1450402412:Vsbl
+1298407456:Md  
+1332765556:Opct
+1283027529:LyrI
+1232366921:ItmI
+1131312160:Cnt 
+1349677908:PrsT
+1818654838:lfxv
+1281713784:Lefx
+1734503489:gblA
+1113811815:Bckg
+1417180192:Txt 
+
+in Lefx
+1399024672:Scl 
+1148343144:DrSh
+1540:
+1541:
+1542:
+1544:
+
+in DrSh
+
+1701732706:enab
+2637:
+2638:
+1298407456:Md  
+1131180576:Clr 
+1332765556:Opct
+1969712231:uglg
+1818322796:lagl
+1148417134:Dstn
+1131113844:Ckmt
+1651275122:blur
+1315926885:Nose
+1097757761:AntA
+1416785491:TrnS
+1545:
+        */
+    function isDropShadowEnabled(){
+        var ref = new ActionReference();  
+        ref.putEnumerated( charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") );   
+        var desc = executeActionGet(ref);//.getObjectValue(stringIDToTypeID('DrSh'));  
+        //var textSize =  desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).getObjectValue(stringIDToTypeID('textStyle')).getDouble (stringIDToTypeID('size'));  
+        
+        var Lefx = charIDToTypeID("Lefx");
+        var DrSh = charIDToTypeID("DrSh");
+        if(desc.hasKey(Lefx)){
+            desc = desc.getObjectValue(Lefx);
+            if(desc.hasKey(DrSh)){
+                desc = desc.getObjectValue(DrSh);
+
+                var enabled = desc.getBoolean(charIDToTypeID("enab"));
+                return enabled;
+            } 
+        }
+        return false;
+
     }
 
     function getCorrectFontSize(textItem){
