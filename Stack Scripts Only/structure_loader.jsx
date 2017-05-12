@@ -120,7 +120,6 @@ var StructureLoader = function() {
         var top = bounds[1].as(g_SizeUnit);
         var right = bounds[2].as(g_SizeUnit);
         var bottom = bounds[3].as(g_SizeUnit);
-        log(layer.name + " : " + bounds);
         obj.x = left;
         obj.y = top;
         obj.width = right - left;
