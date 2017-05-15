@@ -503,7 +503,10 @@ in DrSh
             var mFactor = desc.getObjectValue(stringIDToTypeID('transform')).getUnitDoubleValue (stringIDToTypeID("yy") );  
             textSize = (textSize* mFactor).toFixed(2);  
         }  
-        return Number(textSize);
+        var pt = Number(textSize);
+        var px = pt / 72 * activeDocument.resolution// = pixel / inch;
+        log("Font size = " + px);
+        return px;
     }
     /**
      * Layer選択をする
