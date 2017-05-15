@@ -32,7 +32,7 @@ var UIStructureExporter = function(setting){
         if(setting.exportStructure) {
             log("Start exporting structure.json");
             var jsonPath = pathSetting.exportDir + "/structure.json";
-            saveToJsonFile(jsonPath, copyExcluding(structure, ["layer","ignoreLayers"]));
+            saveToJsonFile(jsonPath, copyExcluding(structure, ["meta"]));
         }
 
     }
@@ -41,7 +41,7 @@ var UIStructureExporter = function(setting){
             if(!setting.exportOnlySelectedLayers){
                 return imageExporter.exportAsPNG;
             }else{
-                if(_isSelectedLayer(node.layer)){
+                if(_isSelectedLayer(node.meta.layer)){
                     return imageExporter.exportAsPNG;
                 }else{
                     return imageExporter.getImagePath;
@@ -81,12 +81,11 @@ var UIStructureExporter = function(setting){
 
 
     function _exportPNGs(node) {
-
-        switch(node.type) {
+        switch(node.componentType) {
             case ComponentType.Image:
             case ComponentType.Button:
                 var exportFunc = _getExportFunction(node);
-                var imagePath = exportFunc(node.name, node.layer, node.ignoreLayers);
+                var imagePath = exportFunc(node.name, node.meta.layer, node.meta.invisibleLayers);
                 if(imagePath != null) node.image = imagePath.name;
             break;
             case ComponentType.Panel:
@@ -100,7 +99,7 @@ var UIStructureExporter = function(setting){
                 // ListViewの背景を出力
                 // ListViewItemの要素は描画しない
                 var exportFunc = _getExportFunction(node);
-                var imagePath = exportFunc(node.name, node.layer, node.ignoreLayers);
+                var imagePath = exportFunc(node.name, node.meta.layer, node.meta.invisibleLayers);
                 if(imagePath != null) node.image = imagePath.name;
 
                 // ListViewItemの要素の描画を行う
@@ -114,7 +113,7 @@ var UIStructureExporter = function(setting){
             break;
             case ComponentType.ListViewItem:
                 var exportFunc = _getExportFunction(node);
-                var imagePath = exportFunc(node.name, node.layer, node.ignoreLayers);
+                var imagePath = exportFunc(node.name, node.meta.layer, node.meta.invisibleLayers);
                 if(imagePath != null) node.image = imagePath.name;
 
                 for(var i = 0; i < node.children.length; i++) {

@@ -39,7 +39,7 @@ function copyExcluding(obj, excludes){
 	if( obj == undefined) return undefined;
 	if( typeof obj == "number") return obj;
 	if( typeof obj == "string") return obj;
-	if( typeof obj == "boolean") return obj;
+    if( typeof obj == "boolean") return obj;
 	if( obj instanceof Array) {
 		var array = [];
 		for(var i = 0; i < obj.length;i++){
@@ -52,6 +52,7 @@ function copyExcluding(obj, excludes){
 	for(var field in obj){
 		if(arrayIncludes(excludes, field)) continue;
 		if(field == "toJSON" || field == "prototype") continue;
+        if(typeof obj[field] == "function") continue;
 
 		copyObj[field] = copyExcluding(obj[field], excludes);
 	}
@@ -139,6 +140,19 @@ Array.prototype.groupBy = function(toKeyFunc) {
         }
     }
     return grouped;
+};
+
+Array.prototype.mkString = function(separator) {
+    var str = "";
+    if(this.length == 0){
+        return "";
+    }
+    for(var i = 0;i < this.length - 1;i ++){
+        str += this[i] + separator;
+    }
+    str += this[this.length - 1];
+
+    return str;
 };
 
 function clearLog()

@@ -57,11 +57,11 @@ var ImageExporter = function () {
             baseDoc.activeLayer = layer;
             var cloneDoc = baseDoc.duplicate(name);
             cloneDoc.crop(layer.bounds);
-
             // 出力
             var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
             _exportToPNG(imagePath, cloneDoc);
             layer.image = imagePath.name;
+            log("Save " + imagePath);
 
             app.activeDocument = baseDoc;
             cloneDoc.close(SaveOptions.DONOTSAVECHANGES);
@@ -94,6 +94,7 @@ var ImageExporter = function () {
         var value = null;
         // 可視の子要素がない場合は、画像を出力しない
         if(_countVisibleChildren(layer) == 0) {
+            log("No visible layers in " + layer.name);
             // do nothing
         }else {
             value = scopeFunc();

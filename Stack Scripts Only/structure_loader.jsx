@@ -17,6 +17,46 @@ var ComponentType = {
     None : "None"
 };
 
+// -- Component class --
+
+var Component = function(componentType) /* Component */{
+    this.componentType = componentType;
+
+    // Json化の際に無視される
+    this.meta = {
+        layer : null,
+        visibleLayers : [],
+        invisibleLayers : []
+    }
+};
+
+Component.prototype.isText = function(){
+    return this.componentType == ComponentType.Text ||
+        this.componentType == ComponentType.VarText;
+};
+Component.prototype.isImage = function(){
+    return this.componentType == ComponentType.Image ||
+        this.componentType == ComponentType.VarImage;
+};
+Component.prototype.hasOnlyTextChildren = function(){
+    if(!this.children) return true;
+    for(var i = 0;i < this.children.length;i++){
+        var c = this.children[i];
+        if(!c.isText()){
+            return false;
+        }
+    }
+    return true;
+};
+Component.prototype.addChild = function(child){
+    if(!this.children) this.children = [];
+    this.children.push(child);
+    this.meta.invisibleLayers.push(child.meta.layer);
+    return this;
+};
+
+
+// -- def end Component --
 
 var StructureLoader = function() {
 
@@ -26,24 +66,201 @@ var StructureLoader = function() {
 
     function _loadRoot(doc) {
 
-        var children = [];
-        var _window = {
-            type: "Window",
-            width: doc.width.as(g_SizeUnit),
-            height: doc.height.as(g_SizeUnit),
-            children : children
-        };
+        var _window = new Component(ComponentType.Window);
+        _window.width = doc.width.as(g_SizeUnit);
+        _window.height = doc.height.as(g_SizeUnit);
 
-        for(var i = 0;i < doc.layers.length;i++) {
-            var l = doc.layers[i];
-            _loadLayer(_window, l);
-        }
+        doc.visible = true;
+        _findAndStartLoadLayers(_window, doc);
 
         _postConstruction(_window);
+
+        //setDebugProps(l);
 
         return _window;
 
     }
+
+    function setDebugProps(l){
+        if(l.meta.layer != null){
+            l.layer = l.meta.layer.name;
+        }
+        l.layerNames = l.meta.visibleLayers.map(function(e){return e.name;});
+        l.ignoreLayerNames = l.meta.invisibleLayers.map(function(e){return e.name;});
+        if(l.children != undefined){
+            for(var i = 0;i < l.children.length;i++){
+                setDebugProps(l.children[i]);
+            }
+        }
+    }
+
+
+    function _findAndStartLoadLayers(parent, layer) {
+        if(!layer.visible) return;
+        for(var i = 0;i < layer.layers.length; i++){
+            var l = layer.layers[i];
+            var nameObj = getNameObj(l);
+            if(nameObj != null){
+                _loadLayer2(parent, l);
+            }else if(l.typename == "LayerSet"){
+                _findAndStartLoadLayers(parent,l);
+            }
+        }
+    }
+    function getNameObj(layer){
+        var nameObj = null;
+        if(layer.nameObj){
+            nameObj = layer.nameObj;
+        } else {
+            nameObj = nameRule.parseName(layer.name);
+            layer.nameObj = nameObj;
+        }
+        return nameObj;
+    }
+
+
+    function _loadLayer2(parent, layer, ignoreNoNameLayers) {
+        if(!layer.visible) return;
+
+
+        var nameObj = getNameObj(layer);
+        if(nameObj == null){
+            // 名前付で無いレイヤー
+            if(layer.typename == "ArtLayer"){
+                var componentType = typeGuesser.guess(layer);
+                if(layer.kind == LayerKind.TEXT){
+                    var obj = new Component(componentType);
+                    obj.meta.layer = layer;
+                    obj.meta.visibleLayers.push(layer);
+                    _setCommonProps(obj, layer);
+                    _setTextProps(obj, layer, parent.ComponentType == ComponentType.Button);
+                    
+                    parent.addChild(obj);
+                } else {
+                    parent.meta.visibleLayers.push(layer);
+                }
+            } else {
+                if(!ignoreNoNameLayers){
+                    for(var i = 0;i < layer.layers.length;i++){
+                        var l = layer.layers[i];
+                        _loadLayer2(parent,layer);
+                    }
+                } else {
+                    parent.meta.invisibleLayers.push(layer);
+                }
+            }
+        } else {
+            if(layer.typename == "ArtLayer"){
+                var componentType = typeGuesser.guess(layer);
+                if(layer.kind == LayerKind.TEXT){
+                    var obj = new Component(componentType);
+                    obj.meta.layer = layer;
+                    obj.meta.visibleLayers.push(layer);
+                    _setCommonProps(obj, layer);
+                    _setTextProps(obj, layer, parent.ComponentType == ComponentType.Button);
+                    
+                    parent.addChild(obj);
+                } else {
+                    var obj = new Component(componentType);
+                    obj.meta.layer = layer;
+                    obj.meta.visibleLayers.push(layer);
+                    _setCommonProps(obj, layer);
+
+                    parent.addChild(obj);
+                }
+            } else {
+                var componentType = typeGuesser.guess(layer);
+
+                if(componentType == ComponentType.ListView){
+                    var obj = new Component(ComponentType.ListView);
+                    obj.meta.layer = layer;
+                    obj.meta.visibleLayers.push(layer);
+                    _setCommonProps(obj, layer);
+
+                    for(var i = 0;i < layer.layers.length;i++){
+                        _loadLayer2(obj, layer.layers[i], false);
+                    }
+                    
+                    _modifyListView(obj);
+
+                    parent.addChild(obj);
+                    
+                    return;
+                }
+
+                var obj = new Component(componentType);
+                obj.meta.layer = layer;
+                obj.meta.visibleLayers.push(layer);
+                _setCommonProps(obj, layer);
+                for(var i = 0;i < layer.layers.length; i++){
+                    var l = layer.layers[i];
+                    _loadLayer2(obj, l);
+                }
+                if( obj.meta.visibleLayers.length == 0 && obj.children.length == 0) {
+                    parent.meta.invisibleLayers.push(this);
+                    return;
+                } else {
+                    if(obj.isImage() && !obj.hasOnlyTextChildren()){
+                        var background = new Component(obj.componentType);
+                        obj.componentType = ComponentType.Panel;
+                        copyPropsForBG(obj,background);
+                        
+                        background.name = "Background";
+                        background.meta.visibleLayers = obj.meta.visibleLayers;
+                        obj.meta.visibleLayers = [];
+
+                        obj.addChild(background);
+
+                        parent.addChild(obj);
+
+                    } else {
+                        parent.addChild(obj);
+                    }
+
+                }
+
+            }
+        }
+
+    }
+    function _modifyListView(obj) {
+
+        var candidates = obj.children.filter(function(c){
+            return c.componentType == ComponentType.ListViewItem;
+        });
+        if(candidates.length == 0){
+            candidates = obj.children.filter(function(c){
+                return c.componentType == ComponentType.Panel;
+            });
+        }
+
+        if(candidates.length == 0 ){
+            log(obj.name + " children = " + obj.children.map(function(c){
+                return c.name;
+            }).mkString(","))
+            throw new Error("ListView:" + obj.name + " must have ListViewItem in children");
+        }
+
+        obj.listViewItem = candidates[0];
+        obj.children = obj.children.filter(function(c){
+            for(var i = 0;i < candidates.length;i++){
+                var c2 = candidates[i];
+                if(c.id == c2.id){
+                    return false;
+                }
+            }
+            return true;
+        });
+        candidates.foreach(function(e){
+            if(e.meta.layer != null){
+                obj.meta.invisibleLayers.push(e.meta.layer);
+            }
+        });
+
+
+
+    }
+
 
 
     function _loadLayer(parent, layer) {
@@ -131,6 +348,16 @@ var StructureLoader = function() {
         }
 
         return obj;
+    }
+    function copyPropsForBG(from, to){
+        // あとで相対座標に計算されるので、x,yもコピーしておく
+        to.x = from.y;
+        to.y = from.y;
+        to.width = from.width;
+        to.height = from.height;
+        to.meta.layer = from.meta.layer;
+        to.meta.visibleLayers = from.meta.visibleLayers;
+
     }
     function disableDropShadow(layer){
         selectLayer(layer);
@@ -296,8 +523,6 @@ in DrSh
                 // Fontの設定をしたことが無い場合例外が出るため、デフォルトのフォントを設定
                 obj.fontName = "KozGoPr6N-Regular";
             }
-
-            obj.layer = layer;
 
             if(isButtonText){
                 obj.textAlign = "center";
@@ -557,6 +782,12 @@ in DrSh
 };
 
 
+var Name = function(){
+    this.layerName = "";
+    this.name = "";
+    this.fulname = "";
+    this.query = {};
+}
 
 var NameRule = function() {
 
@@ -693,7 +924,19 @@ var TypeGuesser = function() {
 
     this.guess = function(layer) {
         var nameObj = nameRule.parseName(layer.name);
-        if(nameObj == null) return ComponentType.None;
+        /*if(nameObj == null) {
+            _maybeVariable(nameObj)
+            if(layer.kind = LayerKind.TEXT){
+                return ComponentType.Text;
+            } else {
+                return ComponentType.None;
+            }
+        }*/
+        if(nameObj == null){
+            nameObj = new Name();
+            nameObj.fullname = layer.name;
+            nameObj.name = layer.name;
+        }
 
         if(nameObj.query.type != undefined){
             return nameObj.query.type;
