@@ -20,7 +20,7 @@ var ComponentType = {
 // -- Component class --
 
 var Component = function(componentType) /* Component */{
-    this.componentType = componentType;
+    this.type = componentType;
 
     // Json化の際に無視される
     this.meta = {
@@ -31,12 +31,12 @@ var Component = function(componentType) /* Component */{
 };
 
 Component.prototype.isText = function(){
-    return this.componentType == ComponentType.Text ||
-        this.componentType == ComponentType.VarText;
+    return this.type == ComponentType.Text ||
+        this.type == ComponentType.VarText;
 };
 Component.prototype.isImage = function(){
-    return this.componentType == ComponentType.Image ||
-        this.componentType == ComponentType.VarImage;
+    return this.type == ComponentType.Image ||
+        this.type == ComponentType.VarImage;
 };
 Component.prototype.hasOnlyTextChildren = function(){
     if(!this.children) return true;
@@ -50,6 +50,9 @@ Component.prototype.hasOnlyTextChildren = function(){
 };
 Component.prototype.addChild = function(child){
     if(!this.children) this.children = [];
+    if(!child.name || child.name == "" || child.name == null){
+        child.name = this.name + child.type + (this.children.length + 1);
+    }
     this.children.push(child);
     this.meta.invisibleLayers.push(child.meta.layer);
     return this;
@@ -143,7 +146,7 @@ var StructureLoader = function() {
                 if(!ignoreNoNameLayers){
                     for(var i = 0;i < layer.layers.length;i++){
                         var l = layer.layers[i];
-                        _loadLayer2(parent,layer);
+                        _loadLayer2(parent,l);
                     }
                 } else {
                     parent.meta.invisibleLayers.push(layer);
@@ -178,7 +181,7 @@ var StructureLoader = function() {
                     _setCommonProps(obj, layer);
 
                     for(var i = 0;i < layer.layers.length;i++){
-                        _loadLayer2(obj, layer.layers[i], false);
+                        _loadLayer2(obj, layer.layers[i], true);
                     }
                     
                     _modifyListView(obj);
@@ -201,8 +204,8 @@ var StructureLoader = function() {
                     return;
                 } else {
                     if(obj.isImage() && !obj.hasOnlyTextChildren()){
-                        var background = new Component(obj.componentType);
-                        obj.componentType = ComponentType.Panel;
+                        var background = new Component(obj.type);
+                        obj.type = ComponentType.Panel;
                         copyPropsForBG(obj,background);
                         
                         background.name = "Background";
@@ -226,11 +229,11 @@ var StructureLoader = function() {
     function _modifyListView(obj) {
 
         var candidates = obj.children.filter(function(c){
-            return c.componentType == ComponentType.ListViewItem;
+            return c.type == ComponentType.ListViewItem;
         });
         if(candidates.length == 0){
             candidates = obj.children.filter(function(c){
-                return c.componentType == ComponentType.Panel;
+                return c.type == ComponentType.Panel;
             });
         }
 
@@ -324,7 +327,7 @@ var StructureLoader = function() {
       共通の要素を設定する
     */
     function _setCommonProps(obj, layer){
-        var disabled = disableDropShadow(layer);
+        var dropShadowDisabled = setDropShadowRec(layer,false);
         // name
         var nameObj = nameRule.parseName(layer.name);
         if(nameObj != null){
@@ -342,10 +345,10 @@ var StructureLoader = function() {
         obj.width = right - left;
         obj.height = bottom - top;
 
-        if(disabled)
-        {
-            setDropShadow(true);
-        }
+
+        dropShadowDisabled.foreach(function(e){
+            setDropShadow(e,true);
+        });
 
         return obj;
     }
@@ -359,18 +362,36 @@ var StructureLoader = function() {
         to.meta.visibleLayers = from.meta.visibleLayers;
 
     }
-    function disableDropShadow(layer){
+
+    function setDropShadowRec(layer, enabled){
+        var list = [];
+        function _innerRec(l) {
+            if(l.visible){
+                if(l.typename == "LayerSet"){
+                    for(var i = 0;i < l.layers.length;i++){
+                        _innerRec(l.layers[i]);
+                    }
+                }
+                if(setDropShadow(l, enabled)){
+                    list.push(l);
+                }
+            }
+        }
+        _innerRec(layer);
+        return list;
+    }
+
+    function setDropShadow(layer, enabled){
         selectLayer(layer);
-        if(isDropShadowEnabled()) {
-            log(layer.name + " has drop shadow");
-            setDropShadow(false);
+        if(isDropShadowEnabled() != enabled) {
+            _setDropShadow(enabled);
             return true;
         } else {
             return false;
         }
     }
 
-    function setDropShadow(enabled) {
+    function _setDropShadow(enabled) {
         var idType = "";
         if(enabled){
             idType = "Shw ";
@@ -482,7 +503,7 @@ in DrSh
             var mFactor = desc.getObjectValue(stringIDToTypeID('transform')).getUnitDoubleValue (stringIDToTypeID("yy") );  
             textSize = (textSize* mFactor).toFixed(2);  
         }  
-        return textSize;
+        return Number(textSize);
     }
     /**
      * Layer選択をする
@@ -490,18 +511,12 @@ in DrSh
     function selectLayer(layer){
         
         var idslct = charIDToTypeID( "slct" );
-        var desc = new ActionDescriptor();
-        var idnull = charIDToTypeID( "null" );
-        var ref = new ActionReference();
-        var idLyr = charIDToTypeID( "Lyr " );
-        ref.putName( idLyr, layer.name ); // Pass layer name
-        desc.putReference( idnull, ref );
-        var idMkVs = charIDToTypeID( "MkVs" );
-        desc.putBoolean( idMkVs, false );
-        var idLyrI = charIDToTypeID( "LyrI" );
-        var list = new ActionList();
-        list.putInteger( layer.id );
-        desc.putList( idLyrI, list ); // Pass layer id
+        var ref = new ActionReference();  
+        ref.putIdentifier(charIDToTypeID('Lyr '), layer.id);  
+        var desc = new ActionDescriptor();  
+        desc.putReference(charIDToTypeID("null"), ref );  
+        desc.putBoolean( charIDToTypeID( "MkVs" ), false ); 
+
         executeAction( idslct, desc, DialogModes.NO );
     }
 
@@ -688,6 +703,7 @@ in DrSh
     function _postConstruction(_window) {
         var components = componentUtil.toList(_window);
 
+        log(components.length + " components");
 
         findVariables(null, _window, components);
         _reposition(_window)

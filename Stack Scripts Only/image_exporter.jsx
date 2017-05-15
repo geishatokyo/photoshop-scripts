@@ -59,9 +59,9 @@ var ImageExporter = function () {
             cloneDoc.crop(layer.bounds);
             // 出力
             var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
+            log("Export " + imagePath);
             _exportToPNG(imagePath, cloneDoc);
             layer.image = imagePath.name;
-            log("Save " + imagePath);
 
             app.activeDocument = baseDoc;
             cloneDoc.close(SaveOptions.DONOTSAVECHANGES);

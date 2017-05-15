@@ -81,7 +81,7 @@ var UIStructureExporter = function(setting){
 
 
     function _exportPNGs(node) {
-        switch(node.componentType) {
+        switch(node.type) {
             case ComponentType.Image:
             case ComponentType.Button:
                 var exportFunc = _getExportFunction(node);
