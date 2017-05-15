@@ -75,7 +75,8 @@ var ImageExporter = function () {
     var SpecialWords = [
         "OK",
         "NG",
-        "HTTP"
+        "HTTP",
+        "ID"
     ];
 
     /*
@@ -116,11 +117,15 @@ var ImageExporter = function () {
                 _name += current;
             }
         }
-        if(_name.substring(0,1) == "_") {
-            return _name.substring(1);
-        } else {
-            return _name;
+        if(_name.endsWith("_")){
+            _name = _name.sub(0,_name.length - 1);
         }
+
+        if(_name.substring(0,1) == "_") {
+            _name = _name.substring(1);
+        }
+
+        return _name;
     }
 
     /*
