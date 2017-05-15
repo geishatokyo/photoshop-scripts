@@ -29,6 +29,7 @@ var ImageExporter = function () {
     this.getImagePath = function(name, layer, additionalIgnoreLayers) {
 
         return _scope(layer, additionalIgnoreLayers, function() {
+            name = camelToSnake(name); // ファイル名はスネークケースに(CamelCaseの場合、)
             var imagePath = new File( pathSetting.imageExportDir + "/" + name + ".png");
             layer.image = imagePath.name;
             return imagePath;
@@ -53,6 +54,7 @@ var ImageExporter = function () {
         // の手順で出力している
         // *****
         return _scope(layer, additionalIgnoreLayers, function() {
+            name = camelToSnake(name);
             // コピーしてCrop
             baseDoc.activeLayer = layer;
             var cloneDoc = baseDoc.duplicate(name);
@@ -69,6 +71,57 @@ var ImageExporter = function () {
         });
 
     };
+
+    var SpecialWords = [
+        "OK",
+        "NG",
+        "HTTP"
+    ];
+
+    /*
+    CamelCaseをSnakeCaseに変更する
+    ファイル名が大文字、小文字混じりの場合、svnやgitで問題を起こしやすいためファイル名はSnakeCaseに変える
+    */
+    function camelToSnake(name){
+        if(!name) return "";
+        if(name.length == 0) return "";
+        var _name = "";
+        for(var i = 0;i < name.length;i++){
+            var s = name.substring(i);
+
+            // 大文字から構成される略語を処理
+            var isStartWithSpecialWord = false;
+            for(var j = 0;j < SpecialWords.length;j++){
+                var sw = SpecialWords[j];
+                if(s.startsWith(sw)){
+                    i += sw.length - 1;
+                    _name += "_" + sw.toLowerCase() + "_";
+                    isStartWithSpecialWord = true;
+                    break;
+                }
+            }
+            if(isStartWithSpecialWord){
+                continue;
+            }
+
+            current = name.substring(i, i+1);
+            if (current.match(/[A-Z]+/)) {
+                if( _name.endsWith("_")){
+                    // _が連続しないように
+                    _name += current.toLowerCase();
+                } else {
+                    _name += "_" + current.toLowerCase();
+                }
+            } else {
+                _name += current;
+            }
+        }
+        if(_name.substring(0,1) == "_") {
+            return _name.substring(1);
+        } else {
+            return _name;
+        }
+    }
 
     /*
     Layerの不可視化と復元を行う。

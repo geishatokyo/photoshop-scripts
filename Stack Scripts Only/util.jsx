@@ -70,6 +70,11 @@ function arrayIncludes(array, element, fromIndex) {
 var pathSetting = new PathSetting();
 
 
+String.prototype.startsWith = function(word) {
+    var i = this.indexOf(word);
+    return i == 0;
+};
+
 
 String.prototype.endsWith = function(word) {
     var i = this.indexOf(word);

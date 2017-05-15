@@ -1107,7 +1107,7 @@ var LayerNameValidator = function() {
         var components = componentUtil.toList(_window);
         _fixDuplicateNames(components);
     };
-
+    
     self.fixSnakeCaseNames = function(_window) {
         var components = componentUtil.toList(_window);
         _fixSnakeCaseNames(components);
