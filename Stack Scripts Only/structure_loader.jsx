@@ -224,7 +224,11 @@ var StructureLoader = function() {
 
                 var obj = new Component(componentType);
                 obj.meta.layer = layer;
-                obj.meta.visibleLayers.push(layer);
+                if(obj.type == ComponentType.Panel){
+
+                } else {
+                    obj.meta.visibleLayers.push(layer);
+                }
                 _setCommonProps(obj, layer);
                 for(var i = 0;i < layer.layers.length; i++){
                     var l = layer.layers[i];
@@ -970,7 +974,8 @@ var TypeGuesser = function() {
     var PanelNames = [
         "panel",
         "パネル",
-        "group"
+        "group",
+        "area"
     ];
     var ListViewItemNames = [
         "listitem",
@@ -1020,7 +1025,8 @@ var TypeGuesser = function() {
         "名前",
         "名",
         "thumb",
-        "thumbnail"
+        "thumbnail",
+        "id"
     ];
 
 
