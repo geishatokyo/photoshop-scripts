@@ -105,7 +105,9 @@ var ImageExporter = function () {
                 continue;
             }
 
-            current = name.substring(i, i+1);
+            var current = name.substring(i, i+1);
+            if (current == "_") continue;
+            
             if (current.match(/[A-Z]+/)) {
                 if( _name.endsWith("_")){
                     // _が連続しないように

@@ -77,8 +77,9 @@ String.prototype.startsWith = function(word) {
 
 
 String.prototype.endsWith = function(word) {
-    var i = this.indexOf(word);
-    return i >= 0 && i == this.length - word.length;
+    if(!word || word.length == 0) return false;
+    var c = this.substring(this.length - word.length);
+    return c === word;
 };
 
 

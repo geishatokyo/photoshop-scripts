@@ -84,6 +84,7 @@ var UIStructureExporter = function(setting){
         switch(node.type) {
             case ComponentType.Image:
             case ComponentType.Button:
+            case ComponentType.InputText:
                 var exportFunc = _getExportFunction(node);
                 var imagePath = exportFunc(node.name, node.meta.layer, node.meta.invisibleLayers);
                 if(imagePath != null) node.image = imagePath.name;

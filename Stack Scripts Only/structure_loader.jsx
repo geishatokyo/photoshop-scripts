@@ -54,7 +54,15 @@ Component.prototype.addChild = function(child){
         child.name = this.name + child.type + (this.children.length + 1);
     }
     this.children.push(child);
-    this.meta.invisibleLayers.push(child.meta.layer);
+    if(child.meta.layer){
+        this.meta.invisibleLayers.push(child.meta.layer);
+    }
+    if (child.meta.visibleLayers && this.meta.invisibleLayers) {
+        var self = this;
+        child.meta.visibleLayers.foreach(function(l){
+            self.meta.invisibleLayers.push(l);
+        });
+    }
     return this;
 };
 
@@ -125,7 +133,6 @@ var StructureLoader = function() {
     function _loadLayer2(parent, layer, ignoreNoNameLayers) {
         if(!layer.visible) return;
 
-
         var nameObj = getNameObj(layer);
         if(nameObj == null){
             // 名前付で無いレイヤー
@@ -138,6 +145,10 @@ var StructureLoader = function() {
                     _setCommonProps(obj, layer);
                     _setTextProps(obj, layer, parent.ComponentType == ComponentType.Button);
                     
+                    if(componentType == ComponentType.InputText){
+                        _modifyInputText(obj);
+                    }
+
                     parent.addChild(obj);
                 } else {
                     parent.meta.visibleLayers.push(layer);
@@ -153,6 +164,7 @@ var StructureLoader = function() {
                 }
             }
         } else {
+            // 名前付きレイヤー
             if(layer.typename == "ArtLayer"){
                 var componentType = typeGuesser.guess(layer);
                 if(layer.kind == LayerKind.TEXT){
@@ -172,8 +184,10 @@ var StructureLoader = function() {
                     parent.addChild(obj);
                 }
             } else {
+                // LayerSetの場合
                 var componentType = typeGuesser.guess(layer);
 
+                // 特殊処理が必要なコンポーネント
                 if(componentType == ComponentType.ListView){
                     var obj = new Component(ComponentType.ListView);
                     obj.meta.layer = layer;
@@ -189,7 +203,24 @@ var StructureLoader = function() {
                     parent.addChild(obj);
                     
                     return;
+                } else if(componentType == ComponentType.InputText){
+
+                    var obj = new Component(ComponentType.InputText);
+                    obj.meta.layer = layer;
+                    obj.meta.visibleLayers.push(layer);
+                    _setCommonProps(obj, layer);
+
+                    for(var i = 0;i < layer.layers.length;i++){
+                        _loadLayer2(obj, layer.layers[i], false);
+                    }
+
+                    _modifyInputText(obj);
+                    parent.addChild(obj);
+
+                    return;
                 }
+
+                // 汎用処理のコンポーネント
 
                 var obj = new Component(componentType);
                 obj.meta.layer = layer;
@@ -208,14 +239,23 @@ var StructureLoader = function() {
                         obj.type = ComponentType.Panel;
                         copyPropsForBG(obj,background);
                         
-                        background.name = "Background";
-                        background.meta.visibleLayers = obj.meta.visibleLayers;
+                        background.name = obj.name + "Background";
                         obj.meta.visibleLayers = [];
 
                         obj.addChild(background);
 
                         parent.addChild(obj);
+                    } else if( obj.type == ComponentType.Panel && obj.meta.visibleLayers.length > 0){
+                        // Panelの場合レイヤーが付いていたら、子要素化する
+                        var background = new Component(ComponentType.Image);
+                        copyPropsForBG(obj, background);
 
+                        background.name = obj.name + "Background";
+                        obj.meta.visibleLayers = [];
+
+                        obj.addChild(background);
+
+                        parent.addChild(obj);
                     } else {
                         parent.addChild(obj);
                     }
@@ -262,6 +302,46 @@ var StructureLoader = function() {
 
 
 
+    }
+
+    function _modifyInputText(obj){
+        if( obj.children.length == 0){
+            // おそらくTextLayer
+            obj.placeHolder = obj.text;
+            obj.text = "";
+            return;
+        }
+        // Placeholderの選択
+        var textLayer = obj.children.find(function(e){
+            return e.type == ComponentType.Text ||
+              e.type == ComponentType.InputText;
+        });
+        if(textLayer) {
+            obj.placeHolder = textLayer.text;
+            obj.fontSize = textLayer.fontSize;
+            obj.fontColor = textLayer.fontColor;
+            obj.fontName = textLayer.fontName;
+
+            obj.text = "";
+        } else {
+            obj.placeHolder = "";
+            obj.text = "";
+        }
+
+        // 背景の統合
+        obj.meta.invisibleLayers = [];
+        obj.meta.visibleLayers = [];
+        obj.children.foreach(function(e){
+            // Image Componentのみ、出力対象にする
+            if(e.type == ComponentType.Image){
+                obj.meta.visibleLayers.push(e.meta.layer);
+            } else {
+                obj.meta.invisibleLayers.push(e.meta.layer);
+            }
+        });
+        obj.children = [];
+
+        return obj;
     }
 
 
@@ -345,6 +425,13 @@ var StructureLoader = function() {
         obj.width = right - left;
         obj.height = bottom - top;
 
+        // クエリがある場合、その値で上書き
+        if(nameObj != null && nameObj.query){
+            for(var i in nameObj.query){
+                obj[i] = nameObj.query[i];
+            }
+        }
+
 
         dropShadowDisabled.foreach(function(e){
             setDropShadow(e,true);
@@ -360,7 +447,6 @@ var StructureLoader = function() {
         to.height = from.height;
         to.meta.layer = from.meta.layer;
         to.meta.visibleLayers = from.meta.visibleLayers;
-
     }
 
     function setDropShadowRec(layer, enabled){
@@ -504,8 +590,9 @@ in DrSh
             textSize = (textSize* mFactor).toFixed(2);  
         }  
         var pt = Number(textSize);
-        var px = pt / 72 * activeDocument.resolution// = pixel / inch;
-        log("Font size = " + px);
+        // 1 pt = 1/72 inch
+        // resolution unit = [ pixel / inch ];
+        var px = pt / 72 * activeDocument.resolution;
         return px;
     }
     /**
