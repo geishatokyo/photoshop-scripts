@@ -311,7 +311,7 @@ var StructureLoader = function() {
     function _modifyInputText(obj){
         if( obj.children.length == 0){
             // おそらくTextLayer
-            obj.placeHolder = obj.text;
+            obj.placeholder = obj.text;
             obj.text = "";
             return;
         }
@@ -321,14 +321,14 @@ var StructureLoader = function() {
               e.type == ComponentType.InputText;
         });
         if(textLayer) {
-            obj.placeHolder = textLayer.text;
+            obj.placeholder = textLayer.text;
             obj.fontSize = textLayer.fontSize;
             obj.fontColor = textLayer.fontColor;
             obj.fontName = textLayer.fontName;
 
             obj.text = "";
         } else {
-            obj.placeHolder = "";
+            obj.placeholder = "";
             obj.text = "";
         }
 
