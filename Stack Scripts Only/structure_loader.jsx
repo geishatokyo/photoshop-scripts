@@ -14,6 +14,8 @@ var ComponentType = {
     VarText: "VarText",
     VarImage: "VarImage",
 
+    Prefab: "Prefab",
+
     None : "None"
 };
 
@@ -234,6 +236,8 @@ var StructureLoader = function() {
                     var l = layer.layers[i];
                     _loadLayer2(obj, l);
                 }
+
+
                 if( obj.meta.visibleLayers.length == 0 && obj.children.length == 0) {
                     parent.meta.invisibleLayers.push(this);
                     return;
@@ -1002,6 +1006,9 @@ var TypeGuesser = function() {
         "checkbox",
         "チェックボックス"
     ];
+    var PrefabNames = [
+        "prefab"
+    ];
 
     var TypeChecks = [
         [VarTextNames, ComponentType.VarText],
@@ -1010,7 +1017,8 @@ var TypeGuesser = function() {
         [InputTextNames, ComponentType.InputText],
         [ListViewItemNames, ComponentType.ListViewItem],
         [ListViewNames, ComponentType.ListView],
-        [CheckBoxNames, ComponentType.CheckBox]
+        [CheckBoxNames, ComponentType.CheckBox],
+        [PrefabNames, ComponentType.Prefab]
     ];
     var LayerSetTypeChecks = [
         [PanelNames, ComponentType.Panel]
