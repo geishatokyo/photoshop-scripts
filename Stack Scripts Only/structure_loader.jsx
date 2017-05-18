@@ -1034,7 +1034,8 @@ var TypeGuesser = function() {
         "名",
         "thumb",
         "thumbnail",
-        "id"
+        "id",
+        "var"
     ];
 
 
