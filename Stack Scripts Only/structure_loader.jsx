@@ -592,16 +592,42 @@ in DrSh
         var ref = new ActionReference();  
         ref.putEnumerated( charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") );   
         var desc = executeActionGet(ref).getObjectValue(stringIDToTypeID('textKey'));  
-        var textSize =  desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).getObjectValue(stringIDToTypeID('textStyle')).getDouble (stringIDToTypeID('size'));  
+        var textSize =  desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).getObjectValue(stringIDToTypeID('textStyle')).getDouble (stringIDToTypeID('impliedFontSize'));  
         if (desc.hasKey(stringIDToTypeID('transform'))) {  
             var mFactor = desc.getObjectValue(stringIDToTypeID('transform')).getUnitDoubleValue (stringIDToTypeID("yy") );  
             textSize = (textSize* mFactor).toFixed(2);  
         }  
-        var pt = Number(textSize);
-        // 1 pt = 1/72 inch
-        // resolution unit = [ pixel / inch ];
-        var px = pt / 72 * activeDocument.resolution;
-        return px;
+
+        // 詳細のインスペクト用コード
+        /*var t = desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).getObjectValue(stringIDToTypeID('textStyle'))
+        log("-- layer " + layer.name);
+        log("Implied:" + t.getString(stringIDToTypeID("impliedFontSize")));
+        log("Size:" + t.getString(stringIDToTypeID("size")));
+        //log("AutoKern:" + t.getString(stringIDToTypeID("autoKern")));
+        log(app.preferences.typeUnits);
+        log("----- get keys ----");
+        for(var i = 0;i < t.count; i++){
+            var key = t.getKey(i);
+            log(key + ": " + typeIDToStringID(key));
+        }
+        log("---- end -----")*/
+
+        switch(app.preferences.typeUnits){
+            case TypeUnits.PIXELS:
+            log("Size   = " + textSize);
+                return textSize;
+            case TypeUnits.POINTS:
+                var pt = Number(textSize);
+                // 1 pt = 1/72 inch
+                // resolution unit = [ pixel / inch ];
+                var px = pt / 72 * activeDocument.resolution;
+                log("Size = " + px);
+                return px;
+            default:
+                log("--- Unknown text unit size:" + app.preferences.TypeUnits);
+                return textSize;
+        }
+
     }
     /**
      * Layer選択をする
