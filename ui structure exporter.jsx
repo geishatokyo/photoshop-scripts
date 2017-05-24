@@ -3,6 +3,8 @@
 $.level = 1;
 $.localize = true;
 
+version = "1.0.2";
+
 // Load libraries
 
 var g_LibFolderPath = new File($.fileName).path + "/Stack Scripts Only/";
@@ -164,6 +166,7 @@ function onDialogClosed(ok, setting) {
 
 function main() {
     clearLog();
+    log("Version " + version);
     showSettingDialog();
 }
 

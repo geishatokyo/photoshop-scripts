@@ -592,7 +592,9 @@ in DrSh
         var ref = new ActionReference();  
         ref.putEnumerated( charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") );   
         var desc = executeActionGet(ref).getObjectValue(stringIDToTypeID('textKey'));  
-        var textSize =  desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).getObjectValue(stringIDToTypeID('textStyle')).getDouble (stringIDToTypeID('impliedFontSize'));  
+        var textSize =  desc.getList(stringIDToTypeID('textStyleRange')).getObjectValue(0).
+            getObjectValue(stringIDToTypeID('textStyle')).
+            getDouble (stringIDToTypeID('size'));  
         if (desc.hasKey(stringIDToTypeID('transform'))) {  
             var mFactor = desc.getObjectValue(stringIDToTypeID('transform')).getUnitDoubleValue (stringIDToTypeID("yy") );  
             textSize = (textSize* mFactor).toFixed(2);  
@@ -614,8 +616,8 @@ in DrSh
 
         switch(app.preferences.typeUnits){
             case TypeUnits.PIXELS:
-            log("Size   = " + textSize);
-                return textSize;
+                log("Size   = " + textSize);
+                return Number(textSize);
             case TypeUnits.POINTS:
                 var pt = Number(textSize);
                 // 1 pt = 1/72 inch
@@ -625,7 +627,7 @@ in DrSh
                 return px;
             default:
                 log("--- Unknown text unit size:" + app.preferences.TypeUnits);
-                return textSize;
+                return Number(textSize);
         }
 
     }
