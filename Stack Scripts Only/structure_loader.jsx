@@ -135,6 +135,14 @@ var StructureLoader = function() {
     function _loadLayer2(parent, layer, ignoreNoNameLayers) {
         if(!layer.visible) return;
 
+        /*if(layer.typename == "ArtLayer" && layer.kind == LayerKind.SMARTOBJECT){
+            log("Layer " + layer.name + " is smart object.");
+            for(var i in layer){
+                log(i);
+            }
+            log("-----");
+        }*/
+
         var nameObj = getNameObj(layer);
         if(nameObj == null){
             // 名前付で無いレイヤー

@@ -3,7 +3,7 @@
 $.level = 1;
 $.localize = true;
 
-version = "1.0.2";
+versionOfScript = "1.0.2";
 
 // Load libraries
 
@@ -90,6 +90,11 @@ var UIStructureExporter = function(setting){
                 var exportFunc = _getExportFunction(node);
                 var imagePath = exportFunc(node.name, node.meta.layer, node.meta.invisibleLayers);
                 if(imagePath != null) node.image = imagePath.name;
+                
+                for(var i = 0; i < node.children.length; i++) {
+                    var c = node.children[i];
+                    _exportPNGs(c);
+                }
             break;
             case ComponentType.Panel:
             case ComponentType.Window:
@@ -166,7 +171,7 @@ function onDialogClosed(ok, setting) {
 
 function main() {
     clearLog();
-    log("Version " + version);
+    log("Version " + versionOfScript);
     showSettingDialog();
 }
 
