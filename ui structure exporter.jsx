@@ -91,16 +91,20 @@ var UIStructureExporter = function(setting){
                 var imagePath = exportFunc(node.name, node.meta.layer, node.meta.invisibleLayers);
                 if(imagePath != null) node.image = imagePath.name;
                 
-                for(var i = 0; i < node.children.length; i++) {
-                    var c = node.children[i];
-                    _exportPNGs(c);
+                if(node.children){
+                    for(var i = 0; i < node.children.length; i++) {
+                        var c = node.children[i];
+                        _exportPNGs(c);
+                    }
                 }
             break;
             case ComponentType.Panel:
             case ComponentType.Window:
-                for(var i = 0; i < node.children.length; i++) {
-                    var c = node.children[i];
-                    _exportPNGs(c);
+                if(node.children){
+                    for(var i = 0; i < node.children.length; i++) {
+                        var c = node.children[i];
+                        _exportPNGs(c);
+                    }
                 }
             break;
             case ComponentType.ListView:
