@@ -423,7 +423,6 @@ var StructureLoader = function() {
       共通の要素を設定する
     */
     function _setCommonProps(obj, layer){
-        var dropShadowDisabled = setDropShadowRec(layer,false);
         // name
         var nameObj = nameRule.parseName(layer.name);
         if(nameObj != null){
@@ -432,14 +431,11 @@ var StructureLoader = function() {
 
         // position
         var bounds = layer.bounds;
-        var left = bounds[0].as(g_SizeUnit);
-        var top = bounds[1].as(g_SizeUnit);
-        var right = bounds[2].as(g_SizeUnit);
-        var bottom = bounds[3].as(g_SizeUnit);
-        obj.x = left;
-        obj.y = top;
-        obj.width = right - left;
-        obj.height = bottom - top;
+        var rect = boundsToRect(bounds);
+        obj.x = rect.x;
+        obj.y = rect.y;
+        obj.width = rect.width;
+        obj.height = rect.height;
 
         // クエリがある場合、その値で上書き
         if(nameObj != null && nameObj.query){
@@ -447,14 +443,41 @@ var StructureLoader = function() {
                 obj[i] = nameObj.query[i];
             }
         }
-
-
-        dropShadowDisabled.foreach(function(e){
-            setDropShadow(e,true);
-        });
+        // 視覚効果無しのサイズも記録
+        var noFxRect = getNoFXRect(layer);
+        obj.noFxRect = noFxRect;
 
         return obj;
     }
+
+    function boundsToRect(bounds) {
+
+        var left = bounds[0].as(g_SizeUnit);
+        var top = bounds[1].as(g_SizeUnit);
+        var right = bounds[2].as(g_SizeUnit);
+        var bottom = bounds[3].as(g_SizeUnit);
+        
+        var rect = {};
+        rect.x = left;
+        rect.y = top;
+        rect.width = right - left;
+        rect.height = bottom - top;
+        return rect;
+    }
+
+    /**
+     * 視覚効果を使用しない場合の元の画像サイズ、位置を取得する
+     * @param {*} layer 
+     */
+    function getNoFXRect(layer) {
+        var dropShadowDisabled = setDropShadowRec(layer,false);
+        var rect = boundsToRect(layer.bounds);
+        dropShadowDisabled.foreach(function(e){
+            setDropShadow(e,true);
+        });
+        return rect;
+    }
+
     function copyPropsForBG(from, to){
         // あとで相対座標に計算されるので、x,yもコピーしておく
         to.x = from.y;
@@ -873,6 +896,12 @@ in DrSh
             var newY = my.y - parent.y;
             my.x = newX;
             my.y = newY;
+            if(my.noFxRect) {
+                var newX = my.noFxRect.x - parent.x;
+                var newY = my.noFxRect.y - parent.y;
+                my.noFxRect.x = newX;
+                my.noFxRect.y = newY;
+            }
         }   
     }
 

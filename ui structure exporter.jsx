@@ -3,7 +3,7 @@
 $.level = 1;
 $.localize = true;
 
-versionOfScript = "1.0.2";
+versionOfScript = "1.0.3";
 
 // Load libraries
 
