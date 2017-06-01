@@ -153,6 +153,7 @@ function showSettingDialog(func) {
         dialog.addCheckbox("exportOnlySelectedLayers","アクティブレイヤーだけを出力する", false);
     });
 
+
     dialog.show(onDialogClosed);
 
 }

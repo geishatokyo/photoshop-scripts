@@ -145,10 +145,11 @@ var SettingDialog = function(title, settingFile) {
             group.add("statictext", undefined, label);
             var input = group.add("dropdownlist", undefined, values);
             input.size = [ComponentWidth, LineHeight];
-            settingUpdator.register(name, input, value);
+            settingUpdator.register(name, input, index);
         } else {
             var input = currentPanel.add("dropdownlist", undefined, values);
             input.size = [LineWidth, LineHeight];
+            settingUpdator.register(name, input, index);
         }
     };
     this.addButton = function(label, eventHandler) {
@@ -255,9 +256,13 @@ var SettingUpdator = function(setting) {
             switch(control.type) {
                 case "checkbox":
                 case "radiobutton":
-                case "dropdownlist":
                     updateFunctions[name] = function() {
                         setting[name] = control.value;
+                    };
+                break;
+                case "dropdownlist":
+                    updateFunctions[name] = function() {
+                        setting[name] = control.selection.index;
                     };
                 break;
                 case "edittext":
@@ -278,8 +283,10 @@ var SettingUpdator = function(setting) {
         switch(control.type) {
             case "checkbox":
             case "radiobutton":
-            case "dropdownlist":
                 control.value = self.getValue(name,defaultValue);
+            break;
+            case "dropdownlist":
+                control.selection = self.getValue(name,defaultValue);
             break;
             case "edittext":
                 control.text = self.getValue(name,defaultValue);

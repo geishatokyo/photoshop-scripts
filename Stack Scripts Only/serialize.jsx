@@ -28,11 +28,14 @@ function saveToJsonFile(f, obj) {
 	if(!(f instanceof File)) {
 		f = new File(f);
 	}
-
-	var str = JSON.stringify(obj);
-    f.encoding = "UTF-8";
-	f.open("w");
-	f.write(str);
-	f.close();
+	try{
+	    var str = JSON.stringify(obj);
+        f.encoding = "UTF-8";
+	    f.open("w");
+	    f.write(str);
+	    f.close();
+	}catch(e){
+		alert(e);
+	}
 
 }
