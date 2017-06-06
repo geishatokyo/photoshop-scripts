@@ -33,7 +33,7 @@ var dropDownTexts = listOfConfigFiles.map(function(e) {
 });
 
 var nameListFiles = listOfConfigFiles.map(function(e) {
-    return "@" + e[1];
+    return e[1];
 });
 
 function showSettingDialog()
@@ -86,6 +86,8 @@ function loadList(path) {
     log("Load list " + path);
     return readToLines(path).filter(function(s){
         return s.length > 0 && !s.startsWith("#");
+    }).map(function(s){
+        return "@" + s;
     });
 }
 
