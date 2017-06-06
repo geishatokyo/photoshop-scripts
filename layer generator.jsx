@@ -33,7 +33,7 @@ var dropDownTexts = listOfConfigFiles.map(function(e) {
 });
 
 var nameListFiles = listOfConfigFiles.map(function(e) {
-    return e[1];
+    return "@" + e[1];
 });
 
 function showSettingDialog()
@@ -53,10 +53,14 @@ function onDialogClosed(ok, setting)
         try{
             layerMaker.exportDestination = setting.exportDestination;
             layerMaker.layerNames = loadList(getPath(setting.layerNameListIndex));
-            layerMaker.generate();
-            
-            alert("完了");
-            log("Success!");
+
+            if (layerMaker.generate()) {
+                alert("完了");
+                log("Success!");
+            } else {
+                alert("失敗");
+                log("Failed!");
+            }
         } catch(e){
             log(e);
             alert(e);
@@ -147,7 +151,7 @@ var LayerMaker = function()
         }
         for(var i = 0;i < notExists.length;i++){
             var name = notExists[i];
-            var newLayer = dest.artLayers.add();
+            var newLayer = dest.layerSets.add();
             newLayer.name = name;
             log("Create new layer:" + name);
         }
