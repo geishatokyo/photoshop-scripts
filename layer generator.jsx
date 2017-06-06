@@ -103,7 +103,7 @@ var LayerMaker = function()
                 log("Find LayerSet:" + l.name);
                 return l;
             } else {
-                findRec(l);
+                _findRec(l);
             }
         }
         return null;
