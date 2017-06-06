@@ -18,6 +18,12 @@ var confFileDir = new File($.fileName).path + "/conf/layer_gen/";
 
 
 var listOfConfigFiles = [
+    ["Avatar_00001_re_55_v1_00001", "Avatar_00001_re_55_v1_00001"],
+    ["Avatar_00001_re_55_v1_00002", "Avatar_00001_re_55_v1_00002"],
+    ["Avatar_00001_re_55_v1_00003", "Avatar_00001_re_55_v1_00003"],
+    ["Avatar_00001_re_55_v1_chibi", "Avatar_00001_re_55_v1_chibi"],
+    ["Avatar_00001_re_55_v1_debu", "Avatar_00001_re_55_v1_debu"],
+    ["Avatar_00001_re_55_v1_hoso", "Avatar_00001_re_55_v1_hoso"],
     ["Kinpo", "kinpo.txt"],
     ["サンプル", "sample.txt"]
 ];
