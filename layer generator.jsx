@@ -171,6 +171,7 @@ var LayerMaker = function()
         }
         log("-----------------------------");
 
+        return true;
     }
 };
 
