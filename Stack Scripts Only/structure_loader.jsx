@@ -135,13 +135,23 @@ var StructureLoader = function() {
     function _loadLayer2(parent, layer, ignoreNoNameLayers) {
         if(!layer.visible) return;
 
-        /*if(layer.typename == "ArtLayer" && layer.kind == LayerKind.SMARTOBJECT){
+        if(layer.typename == "ArtLayer" && layer.kind == LayerKind.SMARTOBJECT){
             log("Layer " + layer.name + " is smart object.");
-            for(var i in layer){
-                log(i);
+            
+            var filename = getSmartObjectLinkPath(layer);
+            if(filename != null){
+                var c = new Component(ComponentType.Prefab);
+                c.filename = filename;
+                _setCommonProps(c, layer);
+                if(!c.name){
+                    c.name = filename;
+                }
+                parent.addChild(c);
+            } else {
+                log("Not file linked smart object:" + layer.name);
             }
-            log("-----");
-        }*/
+            return;
+        }
 
         var nameObj = getNameObj(layer);
         if(nameObj == null){
@@ -852,6 +862,31 @@ in DrSh
                 _addTextLayers(obj, list, l);
             }
         }
+    }
+
+    function getSmartObjectLinkPath(layer) 
+    {
+
+        selectLayer(layer);
+
+        var ref = new ActionReference();
+        ref.putEnumerated( charIDToTypeID("Lyr "), charIDToTypeID("Ordn"), charIDToTypeID("Trgt") );
+        var layerDesc = executeActionGet(ref);
+
+        var soDesc = layerDesc.getObjectValue(stringIDToTypeID('smartObject'));
+        //_show(soDesc);
+        var placedDesc = soDesc.getEnumerationValue(stringIDToTypeID('placed'));
+        var path = soDesc.getString(stringIDToTypeID("fileReference"));
+        return path;
+    }
+    function _show(desc)
+    {
+        log("---- keys of " + desc);
+        for(var i = 0;i < desc.count; i++){
+            var key = desc.getKey(i);
+            log(typeIDToStringID(key));
+        }
+        log("#------#");
     }
 
     /*
