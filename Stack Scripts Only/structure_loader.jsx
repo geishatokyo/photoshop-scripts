@@ -139,7 +139,7 @@ var StructureLoader = function() {
             log("Layer " + layer.name + " is smart object.");
             
             var filename = getSmartObjectLinkPath(layer);
-            if(filename != null){
+            if(filename != null && filename.endsWith(".psd")){
                 var c = new Component(ComponentType.Prefab);
                 c.filename = filename;
                 _setCommonProps(c, layer);
@@ -147,10 +147,10 @@ var StructureLoader = function() {
                     c.name = filename;
                 }
                 parent.addChild(c);
+                return;
             } else {
                 log("Not file linked smart object:" + layer.name);
             }
-            return;
         }
 
         var nameObj = getNameObj(layer);
