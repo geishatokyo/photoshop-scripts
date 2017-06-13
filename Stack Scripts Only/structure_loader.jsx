@@ -260,7 +260,7 @@ var StructureLoader = function() {
                     parent.meta.invisibleLayers.push(this);
                     return;
                 } else {
-                    if(obj.isImage() && !obj.hasOnlyTextChildren()){
+                    /*if(obj.isImage() && !obj.hasOnlyTextChildren()){
                         var background = new Component(obj.type);
                         obj.type = ComponentType.Panel;
                         copyPropsForBG(obj,background);
@@ -271,7 +271,7 @@ var StructureLoader = function() {
                         obj.addChild(background);
 
                         parent.addChild(obj);
-                    } else if( obj.type == ComponentType.Panel && obj.meta.visibleLayers.length > 0){
+                    } else */if( obj.type == ComponentType.Panel && obj.meta.visibleLayers.length > 0){
                         // Panelの場合レイヤーが付いていたら、子要素化する
                         var background = new Component(ComponentType.Image);
                         copyPropsForBG(obj, background);
@@ -496,6 +496,7 @@ var StructureLoader = function() {
         to.height = from.height;
         to.meta.layer = from.meta.layer;
         to.meta.visibleLayers = from.meta.visibleLayers;
+        to.meta.invisibleLayers = from.meta.invisibleLayers;
     }
 
     function setDropShadowRec(layer, enabled){
